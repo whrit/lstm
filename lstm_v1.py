@@ -8,15 +8,21 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 from keras.models import Sequential
 from keras.layers import LSTM, GRU, Dense, Dropout, AdditiveAttention, Permute, Reshape, Multiply, BatchNormalization
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard, CSVLogger
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.feature_selection import SelectKBest, f_regression, RFE
 from sklearn.linear_model import LinearRegression   
+from scikeras.wrappers import KerasRegressor
 import talib
 import logging
+import datetime
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Setup logging
+logging.basicConfig(filename='logfile.log', filemode='a',
+                    level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+logging.info("Starting script execution.")
 
 # Check TensorFlow version
 logging.info(f"TensorFlow Version: {tf.__version__}")
@@ -43,7 +49,7 @@ logging.info(stock_data.isnull().sum())
 
 # Filling missing values, if any
 logging.info("Filling missing values, if any...")
-stock_data.fillna(method='ffill', inplace=True)
+stock_data.dropna(inplace=True)
 
 logging.info("Calculating technical indicators...")
 stock_data['SMA_10'] = talib.SMA(stock_data['Close'], timeperiod=10)
@@ -67,6 +73,12 @@ stock_data['PLUS_DI'] = talib.PLUS_DI(stock_data['High'], stock_data['Low'], sto
 stock_data['MINUS_DI'] = talib.MINUS_DI(stock_data['High'], stock_data['Low'], stock_data['Close'], timeperiod=14)
 stock_data['PLUS_DM'] = talib.PLUS_DM(stock_data['High'], stock_data['Low'], timeperiod=14)
 stock_data['MINUS_DM'] = talib.MINUS_DM(stock_data['High'], stock_data['Low'], timeperiod=14)
+
+logging.info("Checking for NaN values after calculating technical indicators...")
+logging.info(stock_data.isnull().sum())
+
+logging.info("Forward-filling NaN values...")
+stock_data.dropna(inplace=True)
 
 # Perform correlation analysis
 logging.info("Performing correlation analysis...")
@@ -127,13 +139,12 @@ y_train, y_test = y[:train_size], y[train_size:]
 
 X_train, y_train = np.array(X_train), np.array(y_train)
 
-def create_model(lstm_units=50, dense_units=32, dropout_rate=0.2):
+def create_model(lstm_units=50, dropout_rate=0.2, dense_units=32, optimizer='adam', learning_rate=0.001):
     model = Sequential()
 
     # Adding LSTM layers with return_sequences=True
     model.add(LSTM(units=lstm_units, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
     model.add(LSTM(units=lstm_units, return_sequences=True))
-    # model.add(GRU(units=lstm_units, return_sequences=True))
 
     # Adding self-attention mechanism
     attention = AdditiveAttention(name='attention_weight')
@@ -158,30 +169,32 @@ def create_model(lstm_units=50, dense_units=32, dropout_rate=0.2):
     model.add(Dropout(dropout_rate))
     model.add(BatchNormalization())
 
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    optimizer = tf.keras.optimizers.get(optimizer)
+    optimizer.learning_rate = learning_rate
+    model.compile(optimizer=optimizer, loss='mean_squared_error')
     return model
 
-# Hyperparameter tuning using GridSearchCV or RandomizedSearchCV
+# Hyperparameter tuning using RandomizedSearchCV
 logging.info("Performing hyperparameter tuning...")
-param_grid = {
-    'lstm_units': [32, 64, 128],
+param_distributions = {
     'dense_units': [16, 32, 64],
     'dropout_rate': [0.1, 0.2, 0.3],
+    'optimizer': ['adam', 'rmsprop', 'sgd'],
     'batch_size': [16, 32, 64],
     'epochs': [50, 100, 150]
 }
 
-model = tf.keras.wrappers.scikit_learn.KerasRegressor(build_fn=create_model)
-grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5)
-# grid_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, cv=5)
-grid_search.fit(X_train, y_train)
+model = KerasRegressor(build_fn=create_model, lstm_units=[32, 64, 128], learning_rate=[0.001, 0.01, 0.1], dropout_rate=[0.1, 0.2, 0.3])
+random_search = RandomizedSearchCV(estimator=model, param_distributions=param_distributions, cv=5, n_iter=10)
+random_search.fit(X_train, y_train)
 
-best_model = grid_search.best_estimator_
-best_params = grid_search.best_params_
+best_model = random_search.best_estimator_
+best_params = random_search.best_params_
 logging.info("Best parameters: %s", best_params)
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10)
-model_checkpoint = ModelCheckpoint('best_model.h5', save_best_only=True, monitor='val_loss')
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+model_checkpoint = ModelCheckpoint(f'best_model_{timestamp}.h5', save_best_only=True, monitor='val_loss')
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5)
 tensorboard = TensorBoard(log_dir='./logs')
 csv_logger = CSVLogger('training_log.csv')
@@ -190,7 +203,6 @@ callbacks_list = [early_stopping, model_checkpoint, reduce_lr, tensorboard, csv_
 logging.info("Training the model...")
 history = best_model.fit(X_train, y_train, validation_split=0.2, callbacks=callbacks_list)
 
-# Convert X_test and y_test to Numpy arrays if they are not already
 X_test = np.array(X_test)
 y_test = np.array(y_test)
 
@@ -203,12 +215,22 @@ logging.info("Test Loss: %s", test_loss)
 logging.info("Making predictions on test data...")
 y_pred = best_model.predict(X_test)
 
-# Calculating MAE and RMSE
+# Calculating evaluation metrics
 mae = mean_absolute_error(y_test, y_pred)
 rmse = mean_squared_error(y_test, y_pred, squared=False)
+r2 = r2_score(y_test, y_pred)
+mape = mean_absolute_percentage_error(y_test, y_pred)
 
 logging.info("Mean Absolute Error: %s", mae)
 logging.info("Root Mean Square Error: %s", rmse)
+logging.info("R-squared: %s", r2)
+logging.info("Mean Absolute Percentage Error: %s", mape)
+
+# Saving the trained model and scaler object
+logging.info("Saving the trained model and scaler object...")
+best_model.model_.save('trained_model.h5')
+import joblib
+joblib.dump(scaler, 'scaler.pkl')
 
 # Fetch the latest 60 days of AAPL stock data
 logging.info("Fetching the latest 60 days of AAPL stock data...")
@@ -255,16 +277,21 @@ logging.info("Predicting the next 4 days iteratively...")
 predicted_prices = []
 
 for i in range(4):  # Predicting 4 days
+    logging.info(f"Predicting day {i+1}...")
+
     # Get the prediction (next day)
     next_prediction = best_model.predict(current_batch)
+    logging.info(f"Predicted price (scaled): {next_prediction[0][0]}")
 
     # Reshape the prediction to fit the batch dimension
     next_prediction_reshaped = next_prediction.reshape(1, 1, 1)
 
     # Append the prediction to the batch used for predicting
     current_batch = np.append(current_batch[:, 1:, :], next_prediction_reshaped, axis=1)
-    
+
     # Inverse transform the prediction to the original price scale
-    predicted_prices.append(scaler.inverse_transform(next_prediction.reshape(1, -1))[0, 0])
+    predicted_price = scaler.inverse_transform(next_prediction.reshape(1, -1))[0, 0]
+    predicted_prices.append(predicted_price)
+    logging.info(f"Predicted price (original scale): {predicted_price}")
 
 logging.info("Predicted Stock Prices for the next 4 days: %s", predicted_prices)
