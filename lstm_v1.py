@@ -19,6 +19,8 @@ import logging
 import datetime
 import tensorrt
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
 def cpugpu():
     import tensorflow as tf
     # Check if GPU is available and print the list of GPUs
@@ -31,10 +33,6 @@ def cpugpu():
     
     if gpus:
         try:
-            # Enable memory growth to avoid allocating all GPU memory at once
-            for gpu in gpus:
-                tf.config.experimental.set_memory_growth(gpu, True)
-
             # Specify the GPU device to use (e.g., use the first GPU)
             tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
             
