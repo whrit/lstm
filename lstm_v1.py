@@ -17,6 +17,7 @@ from scikeras.wrappers import KerasRegressor
 import talib
 import logging
 import datetime
+import tensorrt
 
 def cpugpu():
     import tensorflow as tf
