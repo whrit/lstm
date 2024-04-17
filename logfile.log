@@ -1381,3 +1381,927 @@ MINUS_DM      -0.003261  0.129785  0.083568  0.272974  0.141583  ... -0.635385 -
 2024-04-16 17:42:48,774 - INFO - Defining the scaler...
 2024-04-16 17:42:48,774 - INFO - Scaling the selected features...
 2024-04-16 17:42:48,778 - INFO - Preparing the data for training...
+2024-04-16 17:50:50,229 - INFO - Starting script execution.
+2024-04-16 17:50:50,230 - INFO - TensorFlow Version: 2.16.1
+2024-04-16 17:50:50,230 - INFO - Fetching stock_data data...
+2024-04-16 17:50:50,230 - DEBUG - Entering download()
+2024-04-16 17:50:50,230 - DEBUG - Disabling multithreading because DEBUG logging enabled
+2024-04-16 17:50:50,231 - DEBUG -  Entering history()
+2024-04-16 17:50:50,245 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2024-04-16 17:50:50,246 - DEBUG - ('SELECT "t1"."key", "t1"."value" FROM "_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['AAPL', 1, 0])
+2024-04-16 17:50:50,296 - DEBUG -   Entering history()
+2024-04-16 17:50:50,302 - DEBUG - AAPL: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2024-01-01 00:00:00-05:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2024-04-16 17:50:50,303 - DEBUG -    Entering get()
+2024-04-16 17:50:50,304 - DEBUG - url=https://query2.finance.yahoo.com/v8/finance/chart/AAPL
+2024-04-16 17:50:50,304 - DEBUG - params=frozendict.frozendict({'period1': 1577854800, 'period2': 1704085200, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'})
+2024-04-16 17:50:50,304 - DEBUG -     Entering _get_cookie_and_crumb()
+2024-04-16 17:50:50,304 - DEBUG - cookie_mode = 'basic'
+2024-04-16 17:50:50,304 - DEBUG -      Entering _get_cookie_and_crumb_basic()
+2024-04-16 17:50:50,306 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2024-04-16 17:50:50,307 - DEBUG - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['basic', 1, 0])
+2024-04-16 17:50:50,308 - DEBUG - loaded persistent cookie
+2024-04-16 17:50:50,308 - DEBUG - reusing cookie
+2024-04-16 17:50:50,356 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2024-04-16 17:50:50,407 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v1/test/getcrumb HTTP/1.1" 200 11
+2024-04-16 17:50:50,408 - DEBUG - crumb = '2ylVJsw6yG2'
+2024-04-16 17:50:50,408 - DEBUG -      Exiting _get_cookie_and_crumb_basic()
+2024-04-16 17:50:50,408 - DEBUG -     Exiting _get_cookie_and_crumb()
+2024-04-16 17:50:50,411 - DEBUG - Starting new HTTPS connection (1): query2.finance.yahoo.com:443
+2024-04-16 17:50:50,516 - DEBUG - https://query2.finance.yahoo.com:443 "GET /v8/finance/chart/AAPL?period1=1577854800&period2=1704085200&interval=1d&includePrePost=False&events=div%2Csplits%2CcapitalGains&crumb=2ylVJsw6yG2 HTTP/1.1" 200 None
+2024-04-16 17:50:50,540 - DEBUG - response code=200
+2024-04-16 17:50:50,540 - DEBUG -    Exiting get()
+2024-04-16 17:50:50,552 - DEBUG - AAPL: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2023-12-29 14:30:00
+2024-04-16 17:50:50,558 - DEBUG - AAPL: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2023-12-29 09:30:00-05:00
+2024-04-16 17:50:50,583 - DEBUG - AAPL: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 17:50:50,586 - DEBUG - AAPL: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 17:50:50,587 - DEBUG -   Exiting history()
+2024-04-16 17:50:50,587 - DEBUG -  Exiting history()
+2024-04-16 17:50:50,587 - DEBUG - Exiting download()
+2024-04-16 17:50:50,587 - INFO - Swapping 'Adj Close' data into 'Close' column...
+2024-04-16 17:50:50,588 - INFO - Removing 'Adj Close' column...
+2024-04-16 17:50:50,588 - INFO - First few rows of the dataframe:
+2024-04-16 17:50:50,588 - INFO -                  Open       High        Low      Close     Volume
+Date                                                             
+2020-01-02  74.059998  75.150002  73.797501  73.059433  135480400
+2020-01-03  74.287498  75.144997  74.125000  72.349136  146322800
+2020-01-06  73.447502  74.989998  73.187500  72.925644  118387200
+2020-01-07  74.959999  75.224998  74.370003  72.582657  108872000
+2020-01-08  74.290001  76.110001  74.290001  73.750237  132079200
+2024-04-16 17:50:50,597 - INFO - Checking for missing values...
+2024-04-16 17:50:50,598 - INFO - Open      0
+High      0
+Low       0
+Close     0
+Volume    0
+dtype: int64
+2024-04-16 17:50:50,599 - INFO - Filling missing values, if any...
+2024-04-16 17:50:50,599 - INFO - Calculating technical indicators...
+2024-04-16 17:50:50,610 - INFO - Checking for NaN values after calculating technical indicators...
+2024-04-16 17:50:50,611 - INFO - Open              0
+High              0
+Low               0
+Close             0
+Volume            0
+SMA_10            9
+SMA_50           49
+EMA_20           19
+RSI              14
+STOCH_K          17
+STOCH_D          17
+MACD             33
+MACDSIGNAL       33
+MACDHIST         33
+ADX              27
+OBV               0
+ATR              14
+BBANDS_UPPER     19
+BBANDS_MIDDLE    19
+BBANDS_LOWER     19
+MOM              10
+CCI              13
+WILLR            13
+TSF              13
+TRIX             88
+ULTOSC           28
+ROC              10
+PLUS_DI          14
+MINUS_DI         14
+PLUS_DM          13
+MINUS_DM         13
+dtype: int64
+2024-04-16 17:50:50,612 - INFO - Forward-filling NaN values...
+2024-04-16 17:50:50,613 - INFO - Performing correlation analysis...
+2024-04-16 17:50:50,617 - INFO - Correlation Matrix:
+                  Close    Volume    SMA_10    SMA_50    EMA_20  ...       ROC   PLUS_DI  MINUS_DI   PLUS_DM  MINUS_DM
+Close          1.000000 -0.556960  0.987863  0.940518  0.981609  ... -0.027869  0.382257  0.133783  0.188009 -0.003261
+Volume        -0.556960  1.000000 -0.553656 -0.564787 -0.557995  ...  0.074886 -0.072355 -0.062147  0.226621  0.129785
+SMA_10         0.987863 -0.553656  1.000000  0.960735  0.996117  ... -0.155270  0.292117  0.231659  0.113133  0.083568
+SMA_50         0.940518 -0.564787  0.960735  1.000000  0.979613  ... -0.258417  0.121069  0.421796  0.009269  0.272974
+EMA_20         0.981609 -0.557995  0.996117  0.979613  1.000000  ... -0.195204  0.241311  0.291564  0.080589  0.141583
+RSI            0.030978  0.046877 -0.089781 -0.278496 -0.150260  ...  0.810861  0.736249 -0.897301  0.480139 -0.818051
+STOCH_K        0.190154 -0.093407  0.071923 -0.036161  0.031390  ...  0.815903  0.713681 -0.638926  0.511783 -0.578090
+STOCH_D        0.194849 -0.081934  0.095800 -0.034024  0.046450  ...  0.779372  0.708322 -0.629684  0.491952 -0.580167
+MACD           0.084122  0.076523  0.019574 -0.245801 -0.062628  ...  0.598339  0.687358 -0.814082  0.458900 -0.778823
+MACDSIGNAL     0.072951  0.108869  0.045970 -0.231208 -0.034415  ...  0.352576  0.562915 -0.699396  0.339619 -0.683674
+MACDHIST       0.050137 -0.078290 -0.072848 -0.093895 -0.095318  ...  0.841353  0.506340 -0.504378  0.443557 -0.440066
+ADX            0.083597  0.177829  0.064402 -0.075905  0.029548  ...  0.194501  0.360338 -0.386165  0.147314 -0.395610
+OBV            0.747800 -0.318972  0.728020  0.665749  0.715246  ...  0.029926  0.298252  0.049478  0.277489 -0.003349
+ATR           -0.206290  0.434361 -0.186273 -0.095743 -0.161115  ... -0.167338 -0.216498  0.370549  0.443536  0.685009
+BBANDS_UPPER   0.967553 -0.514344  0.986220  0.974039  0.992123  ... -0.226627  0.233804  0.335402  0.118290  0.203381
+BBANDS_MIDDLE  0.974566 -0.551469  0.993160  0.978086  0.998661  ... -0.229919  0.219648  0.310158  0.062538  0.158342
+BBANDS_LOWER   0.967618 -0.581948  0.985864  0.968008  0.990868  ... -0.229980  0.201751  0.279432  0.003766  0.109289
+MOM            0.067148 -0.002646 -0.063443 -0.169503 -0.103741  ...  0.977968  0.626802 -0.700528  0.498327 -0.632279
+CCI            0.027230 -0.010088 -0.110643 -0.193513 -0.139451  ...  0.808442  0.603727 -0.728646  0.421371 -0.654291
+WILLR          0.179111 -0.098426  0.046120 -0.036494  0.015400  ...  0.812659  0.673042 -0.604914  0.494691 -0.538150
+TSF            0.993352 -0.551086  0.989063  0.929854  0.977454  ... -0.021692  0.386444  0.124772  0.186557 -0.013585
+TRIX          -0.168298  0.401657 -0.164337 -0.332417 -0.202082  ...  0.057082  0.120963 -0.395388  0.067017 -0.342707
+ULTOSC         0.513720 -0.235504  0.430679  0.408517  0.423125  ...  0.421387  0.691174 -0.108213  0.496215 -0.144545
+ROC           -0.027869  0.074886 -0.155270 -0.258417 -0.195204  ...  1.000000  0.595362 -0.705479  0.480797 -0.635385
+PLUS_DI        0.382257 -0.072355  0.292117  0.121069  0.241311  ...  0.595362  1.000000 -0.524262  0.760844 -0.502452
+MINUS_DI       0.133783 -0.062147  0.231659  0.421796  0.291564  ... -0.705479 -0.524262  1.000000 -0.274478  0.917048
+PLUS_DM        0.188009  0.226621  0.113133  0.009269  0.080589  ...  0.480797  0.760844 -0.274478  1.000000 -0.061485
+MINUS_DM      -0.003261  0.129785  0.083568  0.272974  0.141583  ... -0.635385 -0.502452  0.917048 -0.061485  1.000000
+
+[28 rows x 28 columns]
+2024-04-16 17:50:50,650 - INFO - Selecting features based on correlation with the target variable...
+2024-04-16 17:50:50,668 - INFO - Selected Features (Correlation): ['Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'OBV', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'ULTOSC']
+2024-04-16 17:50:50,668 - INFO - Performing recursive feature elimination...
+2024-04-16 17:50:50,730 - INFO - Selected Features (RFE): ['SMA_10', 'SMA_50', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'ATR', 'BBANDS_MIDDLE', 'TSF', 'TRIX', 'MINUS_DM']
+2024-04-16 17:50:50,730 - INFO - Updating selected features based on feature selection results...
+2024-04-16 17:50:50,731 - INFO - Final Selected Features: ['Volume', 'TSF', 'TRIX', 'OBV', 'ULTOSC', 'MACDSIGNAL', 'ATR', 'MACDHIST', 'MINUS_DM', 'MACD', 'EMA_20', 'BBANDS_LOWER', 'SMA_10', 'SMA_50', 'BBANDS_MIDDLE', 'Close', 'BBANDS_UPPER']
+2024-04-16 17:50:50,731 - INFO - Feature Importances (SelectKBest):
+2024-04-16 17:50:50,731 - INFO - Volume: 411.9298520000289
+2024-04-16 17:50:50,732 - INFO - SMA_10: 37048.74568911309
+2024-04-16 17:50:50,732 - INFO - SMA_50: 7019.785658564909
+2024-04-16 17:50:50,732 - INFO - EMA_20: 24218.3911042465
+2024-04-16 17:50:50,732 - INFO - OBV: 0.8798709091738848
+2024-04-16 17:50:50,732 - INFO - BBANDS_UPPER: 34.363705707087384
+2024-04-16 17:50:50,732 - INFO - BBANDS_MIDDLE: 36.14954481267104
+2024-04-16 17:50:50,733 - INFO - BBANDS_LOWER: 6.528331735714987
+2024-04-16 17:50:50,733 - INFO - TSF: 4.90095075357902
+2024-04-16 17:50:50,733 - INFO - ULTOSC: 2.3083936116980586
+2024-04-16 17:50:50,733 - INFO - Feature Importances (RFE):
+2024-04-16 17:50:50,733 - INFO - SMA_10: 17
+2024-04-16 17:50:50,733 - INFO - SMA_50: 1
+2024-04-16 17:50:50,733 - INFO - MACD: 1
+2024-04-16 17:50:50,733 - INFO - MACDSIGNAL: 2
+2024-04-16 17:50:50,733 - INFO - MACDHIST: 4
+2024-04-16 17:50:50,733 - INFO - ATR: 10
+2024-04-16 17:50:50,733 - INFO - BBANDS_MIDDLE: 16
+2024-04-16 17:50:50,733 - INFO - TSF: 1
+2024-04-16 17:50:50,734 - INFO - TRIX: 1
+2024-04-16 17:50:50,734 - INFO - MINUS_DM: 1
+2024-04-16 17:50:50,734 - INFO - Defining the scaler...
+2024-04-16 17:50:50,734 - INFO - Scaling the selected features...
+2024-04-16 17:50:50,743 - INFO - Preparing the data for training...
+2024-04-16 17:50:50,753 - INFO - Performing hyperparameter tuning...
+2024-04-16 17:53:01,253 - INFO - Starting script execution.
+2024-04-16 17:53:01,254 - INFO - TensorFlow Version: 2.16.1
+2024-04-16 17:53:01,254 - INFO - Fetching stock_data data...
+2024-04-16 17:53:01,254 - DEBUG - Entering download()
+2024-04-16 17:53:01,254 - DEBUG - Disabling multithreading because DEBUG logging enabled
+2024-04-16 17:53:01,255 - DEBUG -  Entering history()
+2024-04-16 17:53:01,268 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2024-04-16 17:53:01,269 - DEBUG - ('SELECT "t1"."key", "t1"."value" FROM "_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['AAPL', 1, 0])
+2024-04-16 17:53:01,312 - DEBUG -   Entering history()
+2024-04-16 17:53:01,319 - DEBUG - AAPL: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2024-01-01 00:00:00-05:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2024-04-16 17:53:01,322 - DEBUG -    Entering get()
+2024-04-16 17:53:01,322 - DEBUG - url=https://query2.finance.yahoo.com/v8/finance/chart/AAPL
+2024-04-16 17:53:01,322 - DEBUG - params=frozendict.frozendict({'period1': 1577854800, 'period2': 1704085200, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'})
+2024-04-16 17:53:01,322 - DEBUG -     Entering _get_cookie_and_crumb()
+2024-04-16 17:53:01,322 - DEBUG - cookie_mode = 'basic'
+2024-04-16 17:53:01,322 - DEBUG -      Entering _get_cookie_and_crumb_basic()
+2024-04-16 17:53:01,325 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2024-04-16 17:53:01,325 - DEBUG - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['basic', 1, 0])
+2024-04-16 17:53:01,326 - DEBUG - loaded persistent cookie
+2024-04-16 17:53:01,327 - DEBUG - reusing cookie
+2024-04-16 17:53:01,374 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2024-04-16 17:53:01,429 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v1/test/getcrumb HTTP/1.1" 200 11
+2024-04-16 17:53:01,430 - DEBUG - crumb = '2ylVJsw6yG2'
+2024-04-16 17:53:01,430 - DEBUG -      Exiting _get_cookie_and_crumb_basic()
+2024-04-16 17:53:01,430 - DEBUG -     Exiting _get_cookie_and_crumb()
+2024-04-16 17:53:01,436 - DEBUG - Starting new HTTPS connection (1): query2.finance.yahoo.com:443
+2024-04-16 17:53:01,583 - DEBUG - https://query2.finance.yahoo.com:443 "GET /v8/finance/chart/AAPL?period1=1577854800&period2=1704085200&interval=1d&includePrePost=False&events=div%2Csplits%2CcapitalGains&crumb=2ylVJsw6yG2 HTTP/1.1" 200 None
+2024-04-16 17:53:01,603 - DEBUG - response code=200
+2024-04-16 17:53:01,604 - DEBUG -    Exiting get()
+2024-04-16 17:53:01,625 - DEBUG - AAPL: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2023-12-29 14:30:00
+2024-04-16 17:53:01,634 - DEBUG - AAPL: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2023-12-29 09:30:00-05:00
+2024-04-16 17:53:01,674 - DEBUG - AAPL: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 17:53:01,678 - DEBUG - AAPL: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 17:53:01,678 - DEBUG -   Exiting history()
+2024-04-16 17:53:01,678 - DEBUG -  Exiting history()
+2024-04-16 17:53:01,678 - DEBUG - Exiting download()
+2024-04-16 17:53:01,678 - INFO - Swapping 'Adj Close' data into 'Close' column...
+2024-04-16 17:53:01,679 - INFO - Removing 'Adj Close' column...
+2024-04-16 17:53:01,679 - INFO - First few rows of the dataframe:
+2024-04-16 17:53:01,679 - INFO -                  Open       High        Low      Close     Volume
+Date                                                             
+2020-01-02  74.059998  75.150002  73.797501  73.059425  135480400
+2020-01-03  74.287498  75.144997  74.125000  72.349136  146322800
+2020-01-06  73.447502  74.989998  73.187500  72.925636  118387200
+2020-01-07  74.959999  75.224998  74.370003  72.582649  108872000
+2020-01-08  74.290001  76.110001  74.290001  73.750252  132079200
+2024-04-16 17:53:01,690 - INFO - Checking for missing values...
+2024-04-16 17:53:01,691 - INFO - Open      0
+High      0
+Low       0
+Close     0
+Volume    0
+dtype: int64
+2024-04-16 17:53:01,692 - INFO - Filling missing values, if any...
+2024-04-16 17:53:01,692 - INFO - Calculating technical indicators...
+2024-04-16 17:53:01,706 - INFO - Checking for NaN values after calculating technical indicators...
+2024-04-16 17:53:01,708 - INFO - Open              0
+High              0
+Low               0
+Close             0
+Volume            0
+SMA_10            9
+SMA_50           49
+EMA_20           19
+RSI              14
+STOCH_K          17
+STOCH_D          17
+MACD             33
+MACDSIGNAL       33
+MACDHIST         33
+ADX              27
+OBV               0
+ATR              14
+BBANDS_UPPER     19
+BBANDS_MIDDLE    19
+BBANDS_LOWER     19
+MOM              10
+CCI              13
+WILLR            13
+TSF              13
+TRIX             88
+ULTOSC           28
+ROC              10
+PLUS_DI          14
+MINUS_DI         14
+PLUS_DM          13
+MINUS_DM         13
+dtype: int64
+2024-04-16 17:53:01,709 - INFO - Forward-filling NaN values...
+2024-04-16 17:53:01,711 - INFO - Performing correlation analysis...
+2024-04-16 17:53:01,715 - INFO - Correlation Matrix:
+                  Close    Volume    SMA_10    SMA_50    EMA_20  ...       ROC   PLUS_DI  MINUS_DI   PLUS_DM  MINUS_DM
+Close          1.000000 -0.556960  0.987863  0.940518  0.981609  ... -0.027869  0.382258  0.133783  0.188009 -0.003261
+Volume        -0.556960  1.000000 -0.553656 -0.564787 -0.557995  ...  0.074886 -0.072356 -0.062147  0.226621  0.129785
+SMA_10         0.987863 -0.553656  1.000000  0.960735  0.996117  ... -0.155270  0.292117  0.231659  0.113133  0.083568
+SMA_50         0.940518 -0.564787  0.960735  1.000000  0.979613  ... -0.258417  0.121069  0.421796  0.009269  0.272974
+EMA_20         0.981609 -0.557995  0.996117  0.979613  1.000000  ... -0.195204  0.241311  0.291564  0.080589  0.141583
+RSI            0.030978  0.046877 -0.089781 -0.278496 -0.150260  ...  0.810861  0.736250 -0.897301  0.480138 -0.818051
+STOCH_K        0.190154 -0.093407  0.071923 -0.036161  0.031390  ...  0.815903  0.713681 -0.638927  0.511783 -0.578090
+STOCH_D        0.194849 -0.081934  0.095800 -0.034024  0.046450  ...  0.779372  0.708322 -0.629684  0.491952 -0.580167
+MACD           0.084122  0.076523  0.019574 -0.245801 -0.062628  ...  0.598339  0.687358 -0.814082  0.458900 -0.778823
+MACDSIGNAL     0.072951  0.108869  0.045970 -0.231208 -0.034415  ...  0.352576  0.562915 -0.699396  0.339619 -0.683674
+MACDHIST       0.050137 -0.078290 -0.072848 -0.093895 -0.095318  ...  0.841353  0.506340 -0.504378  0.443557 -0.440066
+ADX            0.083597  0.177829  0.064402 -0.075905  0.029548  ...  0.194501  0.360338 -0.386165  0.147314 -0.395610
+OBV            0.747800 -0.318972  0.728020  0.665749  0.715246  ...  0.029926  0.298252  0.049478  0.277489 -0.003349
+ATR           -0.206290  0.434361 -0.186273 -0.095744 -0.161115  ... -0.167338 -0.216498  0.370548  0.443536  0.685009
+BBANDS_UPPER   0.967553 -0.514344  0.986220  0.974039  0.992123  ... -0.226627  0.233805  0.335402  0.118290  0.203381
+BBANDS_MIDDLE  0.974566 -0.551469  0.993160  0.978086  0.998661  ... -0.229919  0.219649  0.310158  0.062538  0.158342
+BBANDS_LOWER   0.967618 -0.581948  0.985864  0.968008  0.990868  ... -0.229980  0.201751  0.279432  0.003766  0.109289
+MOM            0.067148 -0.002646 -0.063443 -0.169503 -0.103741  ...  0.977968  0.626802 -0.700528  0.498327 -0.632279
+CCI            0.027230 -0.010089 -0.110643 -0.193513 -0.139451  ...  0.808442  0.603727 -0.728646  0.421371 -0.654291
+WILLR          0.179111 -0.098426  0.046120 -0.036494  0.015400  ...  0.812659  0.673042 -0.604914  0.494691 -0.538150
+TSF            0.993352 -0.551086  0.989063  0.929854  0.977454  ... -0.021692  0.386445  0.124772  0.186557 -0.013585
+TRIX          -0.168298  0.401657 -0.164337 -0.332417 -0.202082  ...  0.057082  0.120963 -0.395388  0.067017 -0.342707
+ULTOSC         0.513720 -0.235504  0.430679  0.408517  0.423125  ...  0.421388  0.691174 -0.108214  0.496215 -0.144546
+ROC           -0.027869  0.074886 -0.155270 -0.258417 -0.195204  ...  1.000000  0.595362 -0.705479  0.480797 -0.635385
+PLUS_DI        0.382258 -0.072356  0.292117  0.121069  0.241311  ...  0.595362  1.000000 -0.524262  0.760843 -0.502452
+MINUS_DI       0.133783 -0.062147  0.231659  0.421796  0.291564  ... -0.705479 -0.524262  1.000000 -0.274478  0.917048
+PLUS_DM        0.188009  0.226621  0.113133  0.009269  0.080589  ...  0.480797  0.760843 -0.274478  1.000000 -0.061485
+MINUS_DM      -0.003261  0.129785  0.083568  0.272974  0.141583  ... -0.635385 -0.502452  0.917048 -0.061485  1.000000
+
+[28 rows x 28 columns]
+2024-04-16 17:53:01,750 - INFO - Selecting features based on correlation with the target variable...
+2024-04-16 17:53:01,763 - INFO - Selected Features (Correlation): ['Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'OBV', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'ULTOSC']
+2024-04-16 17:53:01,763 - INFO - Performing recursive feature elimination...
+2024-04-16 17:53:01,797 - INFO - Selected Features (RFE): ['SMA_10', 'SMA_50', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'ATR', 'BBANDS_MIDDLE', 'TSF', 'TRIX', 'MINUS_DM']
+2024-04-16 17:53:01,797 - INFO - Updating selected features based on feature selection results...
+2024-04-16 17:53:01,797 - INFO - Final Selected Features: ['BBANDS_LOWER', 'TRIX', 'MINUS_DM', 'TSF', 'ULTOSC', 'MACDSIGNAL', 'OBV', 'SMA_50', 'MACDHIST', 'ATR', 'Close', 'MACD', 'EMA_20', 'SMA_10', 'BBANDS_MIDDLE', 'Volume', 'BBANDS_UPPER']
+2024-04-16 17:53:01,797 - INFO - Feature Importances (SelectKBest):
+2024-04-16 17:53:01,797 - INFO - Volume: 411.92986142592156
+2024-04-16 17:53:01,797 - INFO - SMA_10: 37048.745309767386
+2024-04-16 17:53:01,797 - INFO - SMA_50: 7019.784586944478
+2024-04-16 17:53:01,797 - INFO - EMA_20: 24218.38936872519
+2024-04-16 17:53:01,797 - INFO - OBV: 0.8798829452768409
+2024-04-16 17:53:01,797 - INFO - BBANDS_UPPER: 34.36373280908006
+2024-04-16 17:53:01,798 - INFO - BBANDS_MIDDLE: 36.14957448166578
+2024-04-16 17:53:01,798 - INFO - BBANDS_LOWER: 6.5283377146921495
+2024-04-16 17:53:01,798 - INFO - TSF: 4.90095650435333
+2024-04-16 17:53:01,798 - INFO - ULTOSC: 2.30839320442828
+2024-04-16 17:53:01,798 - INFO - Feature Importances (RFE):
+2024-04-16 17:53:01,798 - INFO - SMA_10: 17
+2024-04-16 17:53:01,798 - INFO - SMA_50: 1
+2024-04-16 17:53:01,798 - INFO - MACD: 1
+2024-04-16 17:53:01,798 - INFO - MACDSIGNAL: 2
+2024-04-16 17:53:01,798 - INFO - MACDHIST: 4
+2024-04-16 17:53:01,798 - INFO - ATR: 10
+2024-04-16 17:53:01,798 - INFO - BBANDS_MIDDLE: 16
+2024-04-16 17:53:01,798 - INFO - TSF: 1
+2024-04-16 17:53:01,798 - INFO - TRIX: 1
+2024-04-16 17:53:01,798 - INFO - MINUS_DM: 1
+2024-04-16 17:53:01,798 - INFO - Defining the scaler...
+2024-04-16 17:53:01,798 - INFO - Scaling the selected features...
+2024-04-16 17:53:01,802 - INFO - Preparing the data for training...
+2024-04-16 17:53:01,809 - INFO - Performing hyperparameter tuning...
+2024-04-16 21:09:01,532 - INFO - Starting script execution.
+2024-04-16 21:09:01,532 - INFO - TensorFlow Version: 2.16.1
+2024-04-16 21:09:01,532 - INFO - Fetching stock_data data...
+2024-04-16 21:09:01,532 - DEBUG - Entering download()
+2024-04-16 21:09:01,533 - DEBUG - Disabling multithreading because DEBUG logging enabled
+2024-04-16 21:09:01,533 - DEBUG -  Entering history()
+2024-04-16 21:09:01,547 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2024-04-16 21:09:01,548 - DEBUG - ('SELECT "t1"."key", "t1"."value" FROM "_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['AAPL', 1, 0])
+2024-04-16 21:09:01,583 - DEBUG -   Entering history()
+2024-04-16 21:09:01,589 - DEBUG - AAPL: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2024-01-01 00:00:00-05:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2024-04-16 21:09:01,590 - DEBUG -    Entering get()
+2024-04-16 21:09:01,591 - DEBUG - url=https://query2.finance.yahoo.com/v8/finance/chart/AAPL
+2024-04-16 21:09:01,591 - DEBUG - params=frozendict.frozendict({'period1': 1577854800, 'period2': 1704085200, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'})
+2024-04-16 21:09:01,591 - DEBUG -     Entering _get_cookie_and_crumb()
+2024-04-16 21:09:01,591 - DEBUG - cookie_mode = 'basic'
+2024-04-16 21:09:01,591 - DEBUG -      Entering _get_cookie_and_crumb_basic()
+2024-04-16 21:09:01,594 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2024-04-16 21:09:01,595 - DEBUG - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['basic', 1, 0])
+2024-04-16 21:09:01,596 - DEBUG - loaded persistent cookie
+2024-04-16 21:09:01,596 - DEBUG - reusing cookie
+2024-04-16 21:09:01,759 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2024-04-16 21:09:01,926 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v1/test/getcrumb HTTP/1.1" 200 11
+2024-04-16 21:09:01,927 - DEBUG - crumb = '2ylVJsw6yG2'
+2024-04-16 21:09:01,928 - DEBUG -      Exiting _get_cookie_and_crumb_basic()
+2024-04-16 21:09:01,928 - DEBUG -     Exiting _get_cookie_and_crumb()
+2024-04-16 21:09:01,966 - DEBUG - Starting new HTTPS connection (1): query2.finance.yahoo.com:443
+2024-04-16 21:09:02,109 - DEBUG - https://query2.finance.yahoo.com:443 "GET /v8/finance/chart/AAPL?period1=1577854800&period2=1704085200&interval=1d&includePrePost=False&events=div%2Csplits%2CcapitalGains&crumb=2ylVJsw6yG2 HTTP/1.1" 200 None
+2024-04-16 21:09:02,135 - DEBUG - response code=200
+2024-04-16 21:09:02,136 - DEBUG -    Exiting get()
+2024-04-16 21:09:02,156 - DEBUG - AAPL: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2023-12-29 14:30:00
+2024-04-16 21:09:02,166 - DEBUG - AAPL: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2023-12-29 09:30:00-05:00
+2024-04-16 21:09:02,216 - DEBUG - AAPL: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 21:09:02,222 - DEBUG - AAPL: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 21:09:02,223 - DEBUG -   Exiting history()
+2024-04-16 21:09:02,223 - DEBUG -  Exiting history()
+2024-04-16 21:09:02,223 - DEBUG - Exiting download()
+2024-04-16 21:09:02,223 - INFO - Swapping 'Adj Close' data into 'Close' column...
+2024-04-16 21:09:02,224 - INFO - Removing 'Adj Close' column...
+2024-04-16 21:09:02,224 - INFO - First few rows of the dataframe:
+2024-04-16 21:09:02,225 - INFO -                  Open       High        Low      Close     Volume
+Date                                                             
+2020-01-02  74.059998  75.150002  73.797501  73.059418  135480400
+2020-01-03  74.287498  75.144997  74.125000  72.349136  146322800
+2020-01-06  73.447502  74.989998  73.187500  72.925613  118387200
+2020-01-07  74.959999  75.224998  74.370003  72.582664  108872000
+2020-01-08  74.290001  76.110001  74.290001  73.750259  132079200
+2024-04-16 21:09:02,237 - INFO - Checking for missing values...
+2024-04-16 21:09:02,237 - INFO - Open      0
+High      0
+Low       0
+Close     0
+Volume    0
+dtype: int64
+2024-04-16 21:09:02,238 - INFO - Filling missing values, if any...
+2024-04-16 21:09:02,239 - INFO - Calculating technical indicators...
+2024-04-16 21:09:02,251 - INFO - Checking for NaN values after calculating technical indicators...
+2024-04-16 21:09:02,253 - INFO - Open              0
+High              0
+Low               0
+Close             0
+Volume            0
+SMA_10            9
+SMA_50           49
+EMA_20           19
+RSI              14
+STOCH_K          17
+STOCH_D          17
+MACD             33
+MACDSIGNAL       33
+MACDHIST         33
+ADX              27
+OBV               0
+ATR              14
+BBANDS_UPPER     19
+BBANDS_MIDDLE    19
+BBANDS_LOWER     19
+MOM              10
+CCI              13
+WILLR            13
+TSF              13
+TRIX             88
+ULTOSC           28
+ROC              10
+PLUS_DI          14
+MINUS_DI         14
+PLUS_DM          13
+MINUS_DM         13
+dtype: int64
+2024-04-16 21:09:02,254 - INFO - Forward-filling NaN values...
+2024-04-16 21:09:02,256 - INFO - Performing correlation analysis...
+2024-04-16 21:09:02,261 - INFO - Correlation Matrix:
+                  Close    Volume    SMA_10  ...  MINUS_DI   PLUS_DM  MINUS_DM
+Close          1.000000 -0.556960  0.987863  ...  0.133784  0.188009 -0.003261
+Volume        -0.556960  1.000000 -0.553656  ... -0.062147  0.226621  0.129785
+SMA_10         0.987863 -0.553656  1.000000  ...  0.231659  0.113133  0.083568
+SMA_50         0.940518 -0.564787  0.960735  ...  0.421796  0.009269  0.272974
+EMA_20         0.981609 -0.557995  0.996117  ...  0.291564  0.080589  0.141583
+RSI            0.030978  0.046878 -0.089781  ... -0.897301  0.480139 -0.818050
+STOCH_K        0.190154 -0.093407  0.071923  ... -0.638927  0.511783 -0.578090
+STOCH_D        0.194849 -0.081934  0.095800  ... -0.629684  0.491952 -0.580167
+MACD           0.084122  0.076523  0.019574  ... -0.814082  0.458900 -0.778823
+MACDSIGNAL     0.072951  0.108869  0.045970  ... -0.699396  0.339619 -0.683674
+MACDHIST       0.050137 -0.078290 -0.072848  ... -0.504379  0.443557 -0.440066
+ADX            0.083597  0.177829  0.064402  ... -0.386165  0.147314 -0.395610
+OBV            0.747800 -0.318972  0.728020  ...  0.049478  0.277489 -0.003349
+ATR           -0.206290  0.434362 -0.186274  ...  0.370548  0.443536  0.685009
+BBANDS_UPPER   0.967553 -0.514344  0.986220  ...  0.335402  0.118290  0.203381
+BBANDS_MIDDLE  0.974566 -0.551469  0.993160  ...  0.310158  0.062538  0.158342
+BBANDS_LOWER   0.967618 -0.581948  0.985864  ...  0.279433  0.003766  0.109289
+MOM            0.067148 -0.002646 -0.063443  ... -0.700528  0.498327 -0.632279
+CCI            0.027230 -0.010088 -0.110643  ... -0.728646  0.421371 -0.654291
+WILLR          0.179111 -0.098426  0.046121  ... -0.604914  0.494691 -0.538150
+TSF            0.993352 -0.551086  0.989063  ...  0.124772  0.186557 -0.013585
+TRIX          -0.168297  0.401657 -0.164337  ... -0.395387  0.067017 -0.342707
+ULTOSC         0.513720 -0.235504  0.430679  ... -0.108214  0.496216 -0.144546
+ROC           -0.027869  0.074886 -0.155270  ... -0.705479  0.480797 -0.635385
+PLUS_DI        0.382258 -0.072356  0.292117  ... -0.524263  0.760843 -0.502453
+MINUS_DI       0.133784 -0.062147  0.231659  ...  1.000000 -0.274478  0.917048
+PLUS_DM        0.188009  0.226621  0.113133  ... -0.274478  1.000000 -0.061485
+MINUS_DM      -0.003261  0.129785  0.083568  ...  0.917048 -0.061485  1.000000
+
+[28 rows x 28 columns]
+2024-04-16 21:09:02,296 - INFO - Selecting features based on correlation with the target variable...
+2024-04-16 21:09:02,309 - INFO - Selected Features (Correlation): ['Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'OBV', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'ULTOSC']
+2024-04-16 21:09:02,310 - INFO - Performing recursive feature elimination...
+2024-04-16 21:09:02,352 - INFO - Selected Features (RFE): ['SMA_10', 'SMA_50', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'ATR', 'BBANDS_MIDDLE', 'TSF', 'TRIX', 'MINUS_DM']
+2024-04-16 21:09:02,352 - INFO - Updating selected features based on feature selection results...
+2024-04-16 21:09:02,353 - INFO - Final Selected Features: ['MACDSIGNAL', 'SMA_50', 'OBV', 'MINUS_DM', 'MACDHIST', 'BBANDS_LOWER', 'BBANDS_UPPER', 'EMA_20', 'ULTOSC', 'Volume', 'SMA_10', 'TRIX', 'TSF', 'ATR', 'MACD', 'Close', 'BBANDS_MIDDLE']
+2024-04-16 21:09:02,353 - INFO - Feature Importances (SelectKBest):
+2024-04-16 21:09:02,353 - INFO - Volume: 411.929888442594
+2024-04-16 21:09:02,353 - INFO - SMA_10: 37048.74268821067
+2024-04-16 21:09:02,353 - INFO - SMA_50: 7019.7838653512135
+2024-04-16 21:09:02,353 - INFO - EMA_20: 24218.386866980378
+2024-04-16 21:09:02,353 - INFO - OBV: 0.8798647550035976
+2024-04-16 21:09:02,353 - INFO - BBANDS_UPPER: 34.36377544431259
+2024-04-16 21:09:02,353 - INFO - BBANDS_MIDDLE: 36.14961647491938
+2024-04-16 21:09:02,353 - INFO - BBANDS_LOWER: 6.528342619832592
+2024-04-16 21:09:02,353 - INFO - TSF: 4.900959875924537
+2024-04-16 21:09:02,353 - INFO - ULTOSC: 2.3083955120788087
+2024-04-16 21:09:02,353 - INFO - Feature Importances (RFE):
+2024-04-16 21:09:02,353 - INFO - SMA_10: 17
+2024-04-16 21:09:02,353 - INFO - SMA_50: 1
+2024-04-16 21:09:02,354 - INFO - MACD: 1
+2024-04-16 21:09:02,354 - INFO - MACDSIGNAL: 2
+2024-04-16 21:09:02,354 - INFO - MACDHIST: 4
+2024-04-16 21:09:02,354 - INFO - ATR: 10
+2024-04-16 21:09:02,354 - INFO - BBANDS_MIDDLE: 16
+2024-04-16 21:09:02,354 - INFO - TSF: 1
+2024-04-16 21:09:02,354 - INFO - TRIX: 1
+2024-04-16 21:09:02,354 - INFO - MINUS_DM: 1
+2024-04-16 21:09:02,354 - INFO - Defining the scaler...
+2024-04-16 21:09:02,354 - INFO - Scaling the selected features...
+2024-04-16 21:09:02,359 - INFO - Preparing the data for training...
+2024-04-16 21:09:02,365 - INFO - Performing hyperparameter tuning...
+2024-04-16 21:33:30,717 - INFO - Starting script execution.
+2024-04-16 21:33:30,718 - INFO - TensorFlow Version: 2.16.1
+2024-04-16 21:33:30,718 - INFO - Fetching stock_data data...
+2024-04-16 21:33:30,718 - DEBUG - Entering download()
+2024-04-16 21:33:30,718 - DEBUG - Disabling multithreading because DEBUG logging enabled
+2024-04-16 21:33:30,718 - DEBUG -  Entering history()
+2024-04-16 21:33:30,738 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2024-04-16 21:33:30,739 - DEBUG - ('SELECT "t1"."key", "t1"."value" FROM "_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['AAPL', 1, 0])
+2024-04-16 21:33:30,776 - DEBUG -   Entering history()
+2024-04-16 21:33:30,785 - DEBUG - AAPL: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2024-01-01 00:00:00-05:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2024-04-16 21:33:30,790 - DEBUG -    Entering get()
+2024-04-16 21:33:30,790 - DEBUG - url=https://query2.finance.yahoo.com/v8/finance/chart/AAPL
+2024-04-16 21:33:30,791 - DEBUG - params=frozendict.frozendict({'period1': 1577854800, 'period2': 1704085200, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'})
+2024-04-16 21:33:30,791 - DEBUG -     Entering _get_cookie_and_crumb()
+2024-04-16 21:33:30,791 - DEBUG - cookie_mode = 'basic'
+2024-04-16 21:33:30,791 - DEBUG -      Entering _get_cookie_and_crumb_basic()
+2024-04-16 21:33:30,793 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2024-04-16 21:33:30,794 - DEBUG - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['basic', 1, 0])
+2024-04-16 21:33:30,795 - DEBUG - loaded persistent cookie
+2024-04-16 21:33:30,795 - DEBUG - reusing cookie
+2024-04-16 21:33:30,856 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2024-04-16 21:33:30,964 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v1/test/getcrumb HTTP/1.1" 200 11
+2024-04-16 21:33:30,965 - DEBUG - crumb = '2ylVJsw6yG2'
+2024-04-16 21:33:30,965 - DEBUG -      Exiting _get_cookie_and_crumb_basic()
+2024-04-16 21:33:30,965 - DEBUG -     Exiting _get_cookie_and_crumb()
+2024-04-16 21:33:30,996 - DEBUG - Starting new HTTPS connection (1): query2.finance.yahoo.com:443
+2024-04-16 21:33:31,158 - DEBUG - https://query2.finance.yahoo.com:443 "GET /v8/finance/chart/AAPL?period1=1577854800&period2=1704085200&interval=1d&includePrePost=False&events=div%2Csplits%2CcapitalGains&crumb=2ylVJsw6yG2 HTTP/1.1" 200 None
+2024-04-16 21:33:31,185 - DEBUG - response code=200
+2024-04-16 21:33:31,185 - DEBUG -    Exiting get()
+2024-04-16 21:33:31,212 - DEBUG - AAPL: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2023-12-29 14:30:00
+2024-04-16 21:33:31,225 - DEBUG - AAPL: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2023-12-29 09:30:00-05:00
+2024-04-16 21:33:31,289 - DEBUG - AAPL: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 21:33:31,295 - DEBUG - AAPL: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 21:33:31,296 - DEBUG -   Exiting history()
+2024-04-16 21:33:31,296 - DEBUG -  Exiting history()
+2024-04-16 21:33:31,296 - DEBUG - Exiting download()
+2024-04-16 21:33:31,296 - INFO - Swapping 'Adj Close' data into 'Close' column...
+2024-04-16 21:33:31,298 - INFO - Removing 'Adj Close' column...
+2024-04-16 21:33:31,299 - INFO - First few rows of the dataframe:
+2024-04-16 21:33:31,299 - INFO -                  Open       High        Low      Close     Volume
+Date                                                             
+2020-01-02  74.059998  75.150002  73.797501  73.059418  135480400
+2020-01-03  74.287498  75.144997  74.125000  72.349144  146322800
+2020-01-06  73.447502  74.989998  73.187500  72.925621  118387200
+2020-01-07  74.959999  75.224998  74.370003  72.582664  108872000
+2020-01-08  74.290001  76.110001  74.290001  73.750229  132079200
+2024-04-16 21:33:31,314 - INFO - Checking for missing values...
+2024-04-16 21:33:31,316 - INFO - Open      0
+High      0
+Low       0
+Close     0
+Volume    0
+dtype: int64
+2024-04-16 21:33:31,316 - INFO - Filling missing values, if any...
+2024-04-16 21:33:31,317 - INFO - Calculating technical indicators...
+2024-04-16 21:33:31,338 - INFO - Checking for NaN values after calculating technical indicators...
+2024-04-16 21:33:31,340 - INFO - Open              0
+High              0
+Low               0
+Close             0
+Volume            0
+SMA_10            9
+SMA_50           49
+EMA_20           19
+RSI              14
+STOCH_K          17
+STOCH_D          17
+MACD             33
+MACDSIGNAL       33
+MACDHIST         33
+ADX              27
+OBV               0
+ATR              14
+BBANDS_UPPER     19
+BBANDS_MIDDLE    19
+BBANDS_LOWER     19
+MOM              10
+CCI              13
+WILLR            13
+TSF              13
+TRIX             88
+ULTOSC           28
+ROC              10
+PLUS_DI          14
+MINUS_DI         14
+PLUS_DM          13
+MINUS_DM         13
+dtype: int64
+2024-04-16 21:33:31,341 - INFO - Forward-filling NaN values...
+2024-04-16 21:33:31,343 - INFO - Performing correlation analysis...
+2024-04-16 21:33:31,350 - INFO - Correlation Matrix:
+                  Close    Volume    SMA_10  ...  MINUS_DI   PLUS_DM  MINUS_DM
+Close          1.000000 -0.556960  0.987863  ...  0.133784  0.188009 -0.003261
+Volume        -0.556960  1.000000 -0.553656  ... -0.062147  0.226621  0.129785
+SMA_10         0.987863 -0.553656  1.000000  ...  0.231659  0.113133  0.083568
+SMA_50         0.940518 -0.564787  0.960735  ...  0.421796  0.009269  0.272974
+EMA_20         0.981609 -0.557995  0.996117  ...  0.291564  0.080589  0.141583
+RSI            0.030978  0.046877 -0.089781  ... -0.897301  0.480138 -0.818051
+STOCH_K        0.190154 -0.093407  0.071923  ... -0.638927  0.511783 -0.578090
+STOCH_D        0.194849 -0.081934  0.095800  ... -0.629684  0.491952 -0.580167
+MACD           0.084122  0.076523  0.019574  ... -0.814082  0.458900 -0.778823
+MACDSIGNAL     0.072951  0.108869  0.045970  ... -0.699396  0.339619 -0.683674
+MACDHIST       0.050137 -0.078290 -0.072848  ... -0.504378  0.443557 -0.440066
+ADX            0.083597  0.177829  0.064402  ... -0.386165  0.147314 -0.395610
+OBV            0.747800 -0.318972  0.728020  ...  0.049478  0.277489 -0.003349
+ATR           -0.206290  0.434362 -0.186273  ...  0.370548  0.443536  0.685009
+BBANDS_UPPER   0.967553 -0.514344  0.986220  ...  0.335402  0.118290  0.203381
+BBANDS_MIDDLE  0.974566 -0.551469  0.993160  ...  0.310158  0.062538  0.158342
+BBANDS_LOWER   0.967618 -0.581948  0.985864  ...  0.279433  0.003766  0.109289
+MOM            0.067148 -0.002646 -0.063443  ... -0.700528  0.498327 -0.632279
+CCI            0.027230 -0.010088 -0.110643  ... -0.728646  0.421371 -0.654291
+WILLR          0.179111 -0.098426  0.046121  ... -0.604914  0.494691 -0.538150
+TSF            0.993352 -0.551086  0.989063  ...  0.124772  0.186557 -0.013585
+TRIX          -0.168298  0.401657 -0.164337  ... -0.395388  0.067017 -0.342707
+ULTOSC         0.513720 -0.235504  0.430679  ... -0.108213  0.496215 -0.144546
+ROC           -0.027869  0.074886 -0.155270  ... -0.705479  0.480797 -0.635385
+PLUS_DI        0.382258 -0.072356  0.292117  ... -0.524262  0.760843 -0.502453
+MINUS_DI       0.133784 -0.062147  0.231659  ...  1.000000 -0.274478  0.917048
+PLUS_DM        0.188009  0.226621  0.113133  ... -0.274478  1.000000 -0.061485
+MINUS_DM      -0.003261  0.129785  0.083568  ...  0.917048 -0.061485  1.000000
+
+[28 rows x 28 columns]
+2024-04-16 21:33:31,394 - INFO - Selecting features based on correlation with the target variable...
+2024-04-16 21:33:31,415 - INFO - Selected Features (Correlation): ['Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'OBV', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'ULTOSC']
+2024-04-16 21:33:31,415 - INFO - Performing recursive feature elimination...
+2024-04-16 21:33:31,475 - INFO - Selected Features (RFE): ['SMA_10', 'SMA_50', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'ATR', 'BBANDS_MIDDLE', 'TSF', 'TRIX', 'MINUS_DM']
+2024-04-16 21:33:31,475 - INFO - Updating selected features based on feature selection results...
+2024-04-16 21:33:31,476 - INFO - Final Selected Features: ['Close', 'OBV', 'BBANDS_LOWER', 'ATR', 'MACDSIGNAL', 'Volume', 'TRIX', 'MINUS_DM', 'TSF', 'MACD', 'BBANDS_MIDDLE', 'SMA_10', 'MACDHIST', 'EMA_20', 'ULTOSC', 'SMA_50', 'BBANDS_UPPER']
+2024-04-16 21:33:31,476 - INFO - Feature Importances (SelectKBest):
+2024-04-16 21:33:31,476 - INFO - Volume: 411.9298847634408
+2024-04-16 21:33:31,476 - INFO - SMA_10: 37048.75119944989
+2024-04-16 21:33:31,477 - INFO - SMA_50: 7019.785775729629
+2024-04-16 21:33:31,477 - INFO - EMA_20: 24218.392755085613
+2024-04-16 21:33:31,477 - INFO - OBV: 0.8798458454646279
+2024-04-16 21:33:31,477 - INFO - BBANDS_UPPER: 34.36374669118389
+2024-04-16 21:33:31,477 - INFO - BBANDS_MIDDLE: 36.14958956397189
+2024-04-16 21:33:31,477 - INFO - BBANDS_LOWER: 6.528331739637534
+2024-04-16 21:33:31,477 - INFO - TSF: 4.900950600348166
+2024-04-16 21:33:31,477 - INFO - ULTOSC: 2.30839396122037
+2024-04-16 21:33:31,477 - INFO - Feature Importances (RFE):
+2024-04-16 21:33:31,477 - INFO - SMA_10: 17
+2024-04-16 21:33:31,477 - INFO - SMA_50: 1
+2024-04-16 21:33:31,477 - INFO - MACD: 1
+2024-04-16 21:33:31,477 - INFO - MACDSIGNAL: 2
+2024-04-16 21:33:31,477 - INFO - MACDHIST: 4
+2024-04-16 21:33:31,478 - INFO - ATR: 10
+2024-04-16 21:33:31,478 - INFO - BBANDS_MIDDLE: 16
+2024-04-16 21:33:31,478 - INFO - TSF: 1
+2024-04-16 21:33:31,478 - INFO - TRIX: 1
+2024-04-16 21:33:31,478 - INFO - MINUS_DM: 1
+2024-04-16 21:33:31,478 - INFO - Defining the scaler...
+2024-04-16 21:33:31,478 - INFO - Scaling the selected features...
+2024-04-16 21:33:31,484 - INFO - Preparing the data for training...
+2024-04-16 21:33:31,490 - INFO - Performing hyperparameter tuning...
+2024-04-16 21:58:56,955 - INFO - Starting script execution.
+2024-04-16 21:58:56,956 - INFO - TensorFlow Version: 2.16.1
+2024-04-16 21:58:56,956 - INFO - Fetching stock_data data...
+2024-04-16 21:58:56,956 - DEBUG - Entering download()
+2024-04-16 21:58:56,956 - DEBUG - Disabling multithreading because DEBUG logging enabled
+2024-04-16 21:58:56,957 - DEBUG -  Entering history()
+2024-04-16 21:58:56,971 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2024-04-16 21:58:56,971 - DEBUG - ('SELECT "t1"."key", "t1"."value" FROM "_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['AAPL', 1, 0])
+2024-04-16 21:58:57,011 - DEBUG -   Entering history()
+2024-04-16 21:58:57,021 - DEBUG - AAPL: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2024-01-01 00:00:00-05:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2024-04-16 21:58:57,024 - DEBUG -    Entering get()
+2024-04-16 21:58:57,024 - DEBUG - url=https://query2.finance.yahoo.com/v8/finance/chart/AAPL
+2024-04-16 21:58:57,024 - DEBUG - params=frozendict.frozendict({'period1': 1577854800, 'period2': 1704085200, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'})
+2024-04-16 21:58:57,024 - DEBUG -     Entering _get_cookie_and_crumb()
+2024-04-16 21:58:57,024 - DEBUG - cookie_mode = 'basic'
+2024-04-16 21:58:57,024 - DEBUG -      Entering _get_cookie_and_crumb_basic()
+2024-04-16 21:58:57,026 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2024-04-16 21:58:57,026 - DEBUG - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['basic', 1, 0])
+2024-04-16 21:58:57,027 - DEBUG - loaded persistent cookie
+2024-04-16 21:58:57,027 - DEBUG - reusing cookie
+2024-04-16 21:58:57,089 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2024-04-16 21:58:57,189 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v1/test/getcrumb HTTP/1.1" 200 11
+2024-04-16 21:58:57,190 - DEBUG - crumb = '2ylVJsw6yG2'
+2024-04-16 21:58:57,190 - DEBUG -      Exiting _get_cookie_and_crumb_basic()
+2024-04-16 21:58:57,190 - DEBUG -     Exiting _get_cookie_and_crumb()
+2024-04-16 21:58:57,222 - DEBUG - Starting new HTTPS connection (1): query2.finance.yahoo.com:443
+2024-04-16 21:58:57,349 - DEBUG - https://query2.finance.yahoo.com:443 "GET /v8/finance/chart/AAPL?period1=1577854800&period2=1704085200&interval=1d&includePrePost=False&events=div%2Csplits%2CcapitalGains&crumb=2ylVJsw6yG2 HTTP/1.1" 200 None
+2024-04-16 21:58:57,385 - DEBUG - response code=200
+2024-04-16 21:58:57,386 - DEBUG -    Exiting get()
+2024-04-16 21:58:57,419 - DEBUG - AAPL: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2023-12-29 14:30:00
+2024-04-16 21:58:57,431 - DEBUG - AAPL: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2023-12-29 09:30:00-05:00
+2024-04-16 21:58:57,490 - DEBUG - AAPL: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 21:58:57,496 - DEBUG - AAPL: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 21:58:57,496 - DEBUG -   Exiting history()
+2024-04-16 21:58:57,497 - DEBUG -  Exiting history()
+2024-04-16 21:58:57,497 - DEBUG - Exiting download()
+2024-04-16 21:58:57,497 - INFO - Swapping 'Adj Close' data into 'Close' column...
+2024-04-16 21:58:57,499 - INFO - Removing 'Adj Close' column...
+2024-04-16 21:58:57,500 - INFO - First few rows of the dataframe:
+2024-04-16 21:58:57,500 - INFO -                  Open       High        Low      Close     Volume
+Date                                                             
+2020-01-02  74.059998  75.150002  73.797501  73.059418  135480400
+2020-01-03  74.287498  75.144997  74.125000  72.349136  146322800
+2020-01-06  73.447502  74.989998  73.187500  72.925636  118387200
+2020-01-07  74.959999  75.224998  74.370003  72.582664  108872000
+2020-01-08  74.290001  76.110001  74.290001  73.750244  132079200
+2024-04-16 21:58:57,519 - INFO - Checking for missing values...
+2024-04-16 21:58:57,521 - INFO - Open      0
+High      0
+Low       0
+Close     0
+Volume    0
+dtype: int64
+2024-04-16 21:58:57,521 - INFO - Filling missing values, if any...
+2024-04-16 21:58:57,522 - INFO - Calculating technical indicators...
+2024-04-16 21:58:57,546 - INFO - Checking for NaN values after calculating technical indicators...
+2024-04-16 21:58:57,549 - INFO - Open              0
+High              0
+Low               0
+Close             0
+Volume            0
+SMA_10            9
+SMA_50           49
+EMA_20           19
+RSI              14
+STOCH_K          17
+STOCH_D          17
+MACD             33
+MACDSIGNAL       33
+MACDHIST         33
+ADX              27
+OBV               0
+ATR              14
+BBANDS_UPPER     19
+BBANDS_MIDDLE    19
+BBANDS_LOWER     19
+MOM              10
+CCI              13
+WILLR            13
+TSF              13
+TRIX             88
+ULTOSC           28
+ROC              10
+PLUS_DI          14
+MINUS_DI         14
+PLUS_DM          13
+MINUS_DM         13
+dtype: int64
+2024-04-16 21:58:57,550 - INFO - Forward-filling NaN values...
+2024-04-16 21:58:57,553 - INFO - Performing correlation analysis...
+2024-04-16 21:58:57,560 - INFO - Correlation Matrix:
+                  Close    Volume    SMA_10  ...  MINUS_DI   PLUS_DM  MINUS_DM
+Close          1.000000 -0.556960  0.987863  ...  0.133784  0.188009 -0.003261
+Volume        -0.556960  1.000000 -0.553656  ... -0.062147  0.226621  0.129785
+SMA_10         0.987863 -0.553656  1.000000  ...  0.231659  0.113133  0.083568
+SMA_50         0.940518 -0.564787  0.960735  ...  0.421796  0.009269  0.272974
+EMA_20         0.981609 -0.557995  0.996117  ...  0.291564  0.080589  0.141583
+RSI            0.030977  0.046878 -0.089782  ... -0.897301  0.480138 -0.818051
+STOCH_K        0.190154 -0.093407  0.071923  ... -0.638926  0.511783 -0.578090
+STOCH_D        0.194849 -0.081934  0.095800  ... -0.629684  0.491952 -0.580167
+MACD           0.084122  0.076523  0.019574  ... -0.814082  0.458900 -0.778823
+MACDSIGNAL     0.072951  0.108869  0.045970  ... -0.699396  0.339619 -0.683674
+MACDHIST       0.050137 -0.078290 -0.072848  ... -0.504378  0.443557 -0.440066
+ADX            0.083597  0.177829  0.064402  ... -0.386165  0.147314 -0.395610
+OBV            0.747800 -0.318972  0.728020  ...  0.049478  0.277489 -0.003349
+ATR           -0.206290  0.434361 -0.186273  ...  0.370549  0.443536  0.685009
+BBANDS_UPPER   0.967553 -0.514344  0.986220  ...  0.335402  0.118290  0.203381
+BBANDS_MIDDLE  0.974566 -0.551469  0.993160  ...  0.310158  0.062538  0.158342
+BBANDS_LOWER   0.967618 -0.581948  0.985864  ...  0.279433  0.003766  0.109289
+MOM            0.067148 -0.002646 -0.063443  ... -0.700528  0.498327 -0.632279
+CCI            0.027230 -0.010088 -0.110643  ... -0.728646  0.421371 -0.654291
+WILLR          0.179111 -0.098426  0.046121  ... -0.604914  0.494691 -0.538150
+TSF            0.993352 -0.551086  0.989063  ...  0.124772  0.186557 -0.013585
+TRIX          -0.168298  0.401657 -0.164337  ... -0.395388  0.067017 -0.342707
+ULTOSC         0.513720 -0.235504  0.430679  ... -0.108213  0.496215 -0.144546
+ROC           -0.027869  0.074886 -0.155270  ... -0.705479  0.480797 -0.635385
+PLUS_DI        0.382258 -0.072356  0.292117  ... -0.524263  0.760843 -0.502453
+MINUS_DI       0.133784 -0.062147  0.231659  ...  1.000000 -0.274478  0.917048
+PLUS_DM        0.188009  0.226621  0.113133  ... -0.274478  1.000000 -0.061485
+MINUS_DM      -0.003261  0.129785  0.083568  ...  0.917048 -0.061485  1.000000
+
+[28 rows x 28 columns]
+2024-04-16 21:58:57,610 - INFO - Selecting features based on correlation with the target variable...
+2024-04-16 21:58:57,636 - INFO - Selected Features (Correlation): ['Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'OBV', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'ULTOSC']
+2024-04-16 21:58:57,636 - INFO - Performing recursive feature elimination...
+2024-04-16 21:58:57,698 - INFO - Selected Features (RFE): ['SMA_10', 'SMA_50', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'TRIX']
+2024-04-16 21:58:57,698 - INFO - Updating selected features based on feature selection results...
+2024-04-16 21:58:57,698 - INFO - Final Selected Features: ['BBANDS_LOWER', 'Volume', 'SMA_10', 'SMA_50', 'BBANDS_UPPER', 'TSF', 'OBV', 'BBANDS_MIDDLE', 'MACD', 'MACDHIST', 'TRIX', 'Close', 'ULTOSC', 'MACDSIGNAL', 'EMA_20']
+2024-04-16 21:58:57,699 - INFO - Feature Importances (SelectKBest):
+2024-04-16 21:58:57,699 - INFO - Volume: 411.9298868797601
+2024-04-16 21:58:57,699 - INFO - SMA_10: 37048.745731380266
+2024-04-16 21:58:57,699 - INFO - SMA_50: 7019.7864646899025
+2024-04-16 21:58:57,700 - INFO - EMA_20: 24218.392094392122
+2024-04-16 21:58:57,700 - INFO - OBV: 0.8798250463660561
+2024-04-16 21:58:57,700 - INFO - BBANDS_UPPER: 34.363742248094724
+2024-04-16 21:58:57,700 - INFO - BBANDS_MIDDLE: 36.14958465667123
+2024-04-16 21:58:57,700 - INFO - BBANDS_LOWER: 6.528331260183692
+2024-04-16 21:58:57,700 - INFO - TSF: 4.9009490118772785
+2024-04-16 21:58:57,700 - INFO - ULTOSC: 2.3083961024640223
+2024-04-16 21:58:57,700 - INFO - Feature Importances (RFE):
+2024-04-16 21:58:57,700 - INFO - SMA_10: 17
+2024-04-16 21:58:57,700 - INFO - SMA_50: 1
+2024-04-16 21:58:57,700 - INFO - MACD: 1
+2024-04-16 21:58:57,700 - INFO - MACDSIGNAL: 4
+2024-04-16 21:58:57,700 - INFO - MACDHIST: 6
+2024-04-16 21:58:57,700 - INFO - BBANDS_UPPER: 10
+2024-04-16 21:58:57,700 - INFO - BBANDS_MIDDLE: 16
+2024-04-16 21:58:57,700 - INFO - BBANDS_LOWER: 1
+2024-04-16 21:58:57,700 - INFO - TSF: 1
+2024-04-16 21:58:57,700 - INFO - TRIX: 1
+2024-04-16 21:58:57,701 - INFO - Defining the scaler...
+2024-04-16 21:58:57,701 - INFO - Scaling the selected features...
+2024-04-16 21:58:57,707 - INFO - Preparing the data for training...
+2024-04-16 21:58:57,713 - INFO - Performing hyperparameter tuning...
+2024-04-16 22:05:18,707 - INFO - Starting script execution.
+2024-04-16 22:05:18,708 - INFO - TensorFlow Version: 2.16.1
+2024-04-16 22:05:18,708 - INFO - Fetching stock_data data...
+2024-04-16 22:05:18,708 - DEBUG - Entering download()
+2024-04-16 22:05:18,709 - DEBUG - Disabling multithreading because DEBUG logging enabled
+2024-04-16 22:05:18,709 - DEBUG -  Entering history()
+2024-04-16 22:05:18,735 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2024-04-16 22:05:18,736 - DEBUG - ('SELECT "t1"."key", "t1"."value" FROM "_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['AAPL', 1, 0])
+2024-04-16 22:05:18,780 - DEBUG -   Entering history()
+2024-04-16 22:05:18,794 - DEBUG - AAPL: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2024-01-01 00:00:00-05:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2024-04-16 22:05:18,801 - DEBUG -    Entering get()
+2024-04-16 22:05:18,801 - DEBUG - url=https://query2.finance.yahoo.com/v8/finance/chart/AAPL
+2024-04-16 22:05:18,801 - DEBUG - params=frozendict.frozendict({'period1': 1577854800, 'period2': 1704085200, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'})
+2024-04-16 22:05:18,802 - DEBUG -     Entering _get_cookie_and_crumb()
+2024-04-16 22:05:18,802 - DEBUG - cookie_mode = 'basic'
+2024-04-16 22:05:18,802 - DEBUG -      Entering _get_cookie_and_crumb_basic()
+2024-04-16 22:05:18,805 - DEBUG - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2024-04-16 22:05:18,806 - DEBUG - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['basic', 1, 0])
+2024-04-16 22:05:18,807 - DEBUG - loaded persistent cookie
+2024-04-16 22:05:18,807 - DEBUG - reusing cookie
+2024-04-16 22:05:18,878 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2024-04-16 22:05:18,999 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v1/test/getcrumb HTTP/1.1" 200 11
+2024-04-16 22:05:19,001 - DEBUG - crumb = '2ylVJsw6yG2'
+2024-04-16 22:05:19,001 - DEBUG -      Exiting _get_cookie_and_crumb_basic()
+2024-04-16 22:05:19,001 - DEBUG -     Exiting _get_cookie_and_crumb()
+2024-04-16 22:05:19,006 - DEBUG - Starting new HTTPS connection (1): query2.finance.yahoo.com:443
+2024-04-16 22:05:19,162 - DEBUG - https://query2.finance.yahoo.com:443 "GET /v8/finance/chart/AAPL?period1=1577854800&period2=1704085200&interval=1d&includePrePost=False&events=div%2Csplits%2CcapitalGains&crumb=2ylVJsw6yG2 HTTP/1.1" 200 None
+2024-04-16 22:05:19,204 - DEBUG - response code=200
+2024-04-16 22:05:19,204 - DEBUG -    Exiting get()
+2024-04-16 22:05:19,241 - DEBUG - AAPL: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2023-12-29 14:30:00
+2024-04-16 22:05:19,257 - DEBUG - AAPL: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2023-12-29 09:30:00-05:00
+2024-04-16 22:05:19,334 - DEBUG - AAPL: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 22:05:19,340 - DEBUG - AAPL: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2023-12-29 00:00:00-05:00
+2024-04-16 22:05:19,340 - DEBUG -   Exiting history()
+2024-04-16 22:05:19,340 - DEBUG -  Exiting history()
+2024-04-16 22:05:19,340 - DEBUG - Exiting download()
+2024-04-16 22:05:19,340 - INFO - Swapping 'Adj Close' data into 'Close' column...
+2024-04-16 22:05:19,341 - INFO - Removing 'Adj Close' column...
+2024-04-16 22:05:19,342 - INFO - First few rows of the dataframe:
+2024-04-16 22:05:19,342 - INFO -                  Open       High        Low      Close     Volume
+Date                                                             
+2020-01-02  74.059998  75.150002  73.797501  73.059410  135480400
+2020-01-03  74.287498  75.144997  74.125000  72.349144  146322800
+2020-01-06  73.447502  74.989998  73.187500  72.925629  118387200
+2020-01-07  74.959999  75.224998  74.370003  72.582657  108872000
+2020-01-08  74.290001  76.110001  74.290001  73.750244  132079200
+2024-04-16 22:05:19,356 - INFO - Checking for missing values...
+2024-04-16 22:05:19,358 - INFO - Open      0
+High      0
+Low       0
+Close     0
+Volume    0
+dtype: int64
+2024-04-16 22:05:19,359 - INFO - Filling missing values, if any...
+2024-04-16 22:05:19,360 - INFO - Calculating technical indicators...
+2024-04-16 22:05:19,381 - INFO - Checking for NaN values after calculating technical indicators...
+2024-04-16 22:05:19,382 - INFO - Open              0
+High              0
+Low               0
+Close             0
+Volume            0
+SMA_10            9
+SMA_50           49
+EMA_20           19
+RSI              14
+STOCH_K          17
+STOCH_D          17
+MACD             33
+MACDSIGNAL       33
+MACDHIST         33
+ADX              27
+OBV               0
+ATR              14
+BBANDS_UPPER     19
+BBANDS_MIDDLE    19
+BBANDS_LOWER     19
+MOM              10
+CCI              13
+WILLR            13
+TSF              13
+TRIX             88
+ULTOSC           28
+ROC              10
+PLUS_DI          14
+MINUS_DI         14
+PLUS_DM          13
+MINUS_DM         13
+dtype: int64
+2024-04-16 22:05:19,383 - INFO - Forward-filling NaN values...
+2024-04-16 22:05:19,385 - INFO - Performing correlation analysis...
+2024-04-16 22:05:19,391 - INFO - Correlation Matrix:
+                  Close    Volume    SMA_10  ...  MINUS_DI   PLUS_DM  MINUS_DM
+Close          1.000000 -0.556960  0.987863  ...  0.133783  0.188009 -0.003261
+Volume        -0.556960  1.000000 -0.553656  ... -0.062147  0.226621  0.129785
+SMA_10         0.987863 -0.553656  1.000000  ...  0.231659  0.113133  0.083568
+SMA_50         0.940518 -0.564787  0.960735  ...  0.421796  0.009269  0.272974
+EMA_20         0.981609 -0.557995  0.996117  ...  0.291564  0.080589  0.141583
+RSI            0.030978  0.046877 -0.089781  ... -0.897301  0.480138 -0.818051
+STOCH_K        0.190154 -0.093407  0.071923  ... -0.638926  0.511783 -0.578090
+STOCH_D        0.194849 -0.081934  0.095800  ... -0.629684  0.491952 -0.580167
+MACD           0.084122  0.076523  0.019574  ... -0.814082  0.458900 -0.778823
+MACDSIGNAL     0.072951  0.108869  0.045970  ... -0.699396  0.339619 -0.683674
+MACDHIST       0.050137 -0.078290 -0.072848  ... -0.504378  0.443557 -0.440066
+ADX            0.083597  0.177829  0.064402  ... -0.386165  0.147314 -0.395610
+OBV            0.747800 -0.318972  0.728020  ...  0.049478  0.277489 -0.003349
+ATR           -0.206289  0.434361 -0.186273  ...  0.370548  0.443536  0.685009
+BBANDS_UPPER   0.967553 -0.514344  0.986220  ...  0.335402  0.118290  0.203381
+BBANDS_MIDDLE  0.974566 -0.551469  0.993160  ...  0.310158  0.062538  0.158342
+BBANDS_LOWER   0.967618 -0.581948  0.985864  ...  0.279432  0.003766  0.109289
+MOM            0.067148 -0.002646 -0.063443  ... -0.700528  0.498327 -0.632279
+CCI            0.027230 -0.010089 -0.110643  ... -0.728646  0.421371 -0.654291
+WILLR          0.179111 -0.098426  0.046120  ... -0.604914  0.494691 -0.538150
+TSF            0.993352 -0.551086  0.989063  ...  0.124772  0.186557 -0.013585
+TRIX          -0.168298  0.401657 -0.164337  ... -0.395388  0.067017 -0.342707
+ULTOSC         0.513720 -0.235504  0.430679  ... -0.108213  0.496215 -0.144546
+ROC           -0.027869  0.074886 -0.155270  ... -0.705479  0.480797 -0.635385
+PLUS_DI        0.382257 -0.072356  0.292117  ... -0.524262  0.760843 -0.502453
+MINUS_DI       0.133783 -0.062147  0.231659  ...  1.000000 -0.274478  0.917048
+PLUS_DM        0.188009  0.226621  0.113133  ... -0.274478  1.000000 -0.061485
+MINUS_DM      -0.003261  0.129785  0.083568  ...  0.917048 -0.061485  1.000000
+
+[28 rows x 28 columns]
+2024-04-16 22:05:19,431 - INFO - Selecting features based on correlation with the target variable...
+2024-04-16 22:05:19,451 - INFO - Selected Features (Correlation): ['Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'OBV', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'TSF', 'ULTOSC']
+2024-04-16 22:05:19,452 - INFO - Performing recursive feature elimination...
+2024-04-16 22:05:19,507 - INFO - Selected Features (RFE): ['SMA_10', 'SMA_50', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'ATR', 'BBANDS_MIDDLE', 'TSF', 'TRIX', 'MINUS_DM']
+2024-04-16 22:05:19,508 - INFO - Updating selected features based on feature selection results...
+2024-04-16 22:05:19,508 - INFO - Final Selected Features: ['SMA_10', 'SMA_50', 'TSF', 'EMA_20', 'BBANDS_UPPER', 'TRIX', 'Volume', 'ATR', 'MINUS_DM', 'MACDHIST', 'MACDSIGNAL', 'BBANDS_MIDDLE', 'Close', 'MACD', 'OBV', 'BBANDS_LOWER', 'ULTOSC']
+2024-04-16 22:05:19,508 - INFO - Feature Importances (SelectKBest):
+2024-04-16 22:05:19,508 - INFO - Volume: 411.92988960630726
+2024-04-16 22:05:19,509 - INFO - SMA_10: 37048.74481780526
+2024-04-16 22:05:19,509 - INFO - SMA_50: 7019.786649672576
+2024-04-16 22:05:19,509 - INFO - EMA_20: 24218.393021253672
+2024-04-16 22:05:19,509 - INFO - OBV: 0.8798610036520075
+2024-04-16 22:05:19,509 - INFO - BBANDS_UPPER: 34.36369926127147
+2024-04-16 22:05:19,509 - INFO - BBANDS_MIDDLE: 36.14954170931773
+2024-04-16 22:05:19,509 - INFO - BBANDS_LOWER: 6.528326724712618
+2024-04-16 22:05:19,509 - INFO - TSF: 4.9009447424498545
+2024-04-16 22:05:19,509 - INFO - ULTOSC: 2.3083961972652878
+2024-04-16 22:05:19,509 - INFO - Feature Importances (RFE):
+2024-04-16 22:05:19,509 - INFO - SMA_10: 17
+2024-04-16 22:05:19,509 - INFO - SMA_50: 1
+2024-04-16 22:05:19,509 - INFO - MACD: 1
+2024-04-16 22:05:19,509 - INFO - MACDSIGNAL: 2
+2024-04-16 22:05:19,509 - INFO - MACDHIST: 4
+2024-04-16 22:05:19,510 - INFO - ATR: 10
+2024-04-16 22:05:19,510 - INFO - BBANDS_MIDDLE: 16
+2024-04-16 22:05:19,510 - INFO - TSF: 1
+2024-04-16 22:05:19,510 - INFO - TRIX: 1
+2024-04-16 22:05:19,510 - INFO - MINUS_DM: 1
+2024-04-16 22:05:19,510 - INFO - Defining the scaler...
+2024-04-16 22:05:19,510 - INFO - Scaling the selected features...
+2024-04-16 22:05:19,516 - INFO - Preparing the data for training...
+2024-04-16 22:05:19,523 - INFO - Performing hyperparameter tuning...

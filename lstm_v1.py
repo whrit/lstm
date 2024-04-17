@@ -5,8 +5,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
-from keras.models import Sequential
-from keras.layers import LSTM, GRU, Dense, Dropout, AdditiveAttention, Permute, Reshape, Multiply, BatchNormalization
+from keras.models import Sequential, Model
+from keras.layers import LSTM, GRU, Dense, Dropout, AdditiveAttention, Permute, Reshape, Multiply, BatchNormalization, Flatten, Input
+from keras.optimizers import Adam, RMSprop, SGD
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard, CSVLogger
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
@@ -16,6 +17,7 @@ from scikeras.wrappers import KerasRegressor
 import talib
 import logging
 import datetime
+
 
 # Setup logging
 logging.basicConfig(filename='logfile.log', filemode='a',
@@ -140,51 +142,53 @@ y_train, y_test = y[:train_size], y[train_size:]
 X_train, y_train = np.array(X_train), np.array(y_train)
 
 def create_model(lstm_units=50, dropout_rate=0.2, dense_units=32, optimizer='adam', learning_rate=0.001):
-    model = Sequential()
-
-    # Adding LSTM layers with return_sequences=True
-    model.add(LSTM(units=lstm_units, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-    model.add(LSTM(units=lstm_units, return_sequences=True))
-
-    # Adding self-attention mechanism
+    # Input layer
+    inputs = Input(shape=(X_train.shape[1], X_train.shape[2]))
+    
+    # LSTM layers with return_sequences=True for both to use in attention
+    x = LSTM(units=lstm_units, return_sequences=True)(inputs)
+    x = LSTM(units=lstm_units, return_sequences=True)(x)
+    
+    # Attention mechanism
     attention = AdditiveAttention(name='attention_weight')
-    model.add(Permute((2, 1)))
-    model.add(Reshape((-1, X_train.shape[1])))
-    attention_result = attention([model.output, model.output])
-    multiply_layer = Multiply()([model.output, attention_result])
-    model.add(Permute((2, 1)))
-    model.add(Reshape((-1, lstm_units)))
-
-    # Adding more dense layers
-    model.add(Dense(units=dense_units, activation='relu'))
-    model.add(Dense(units=dense_units//2, activation='relu'))
-
-    # Adding a Flatten layer before the final Dense layer
-    model.add(tf.keras.layers.Flatten())
-
-    # Final Dense layer
-    model.add(Dense(1))
-
+    attention_result = attention([x, x])  # Self attention
+    x = Multiply()([x, attention_result])
+    
+    # More dense layers
+    x = Dense(units=dense_units, activation='relu')(x)
+    x = Dense(units=dense_units//2, activation='relu')(x)
+    x = Flatten()(x)  # Flatten before final Dense layer
+    output = Dense(1)(x)
+    
     # Adding Dropout and Batch Normalization
-    model.add(Dropout(dropout_rate))
-    model.add(BatchNormalization())
-
-    optimizer = tf.keras.optimizers.get(optimizer)
-    optimizer.learning_rate = learning_rate
-    model.compile(optimizer=optimizer, loss='mean_squared_error')
+    x = Dropout(dropout_rate)(x)
+    x = BatchNormalization()(x)
+    
+    # Creating and compiling the model
+    model = Model(inputs=inputs, outputs=output)
+    if optimizer == 'adam':
+        opt = Adam(learning_rate=learning_rate)
+    elif optimizer == 'rmsprop':
+        opt = RMSprop(learning_rate=learning_rate)
+    else:
+        opt = SGD(learning_rate=learning_rate)
+    model.compile(optimizer=opt, loss='mean_squared_error')
+    
     return model
 
 # Hyperparameter tuning using RandomizedSearchCV
 logging.info("Performing hyperparameter tuning...")
 param_distributions = {
-    'dense_units': [16, 32, 64],
-    'dropout_rate': [0.1, 0.2, 0.3],
-    'optimizer': ['adam', 'rmsprop', 'sgd'],
+    'model__lstm_units': [32, 64, 128],
+    'model__dense_units': [16, 32, 64],
+    'model__dropout_rate': [0.1, 0.2, 0.3],
+    'model__optimizer': ['adam', 'rmsprop', 'sgd'],
+    'model__learning_rate': [0.001, 0.01, 0.1],
     'batch_size': [16, 32, 64],
     'epochs': [50, 100, 150]
 }
 
-model = KerasRegressor(build_fn=create_model, lstm_units=[32, 64, 128], learning_rate=[0.001, 0.01, 0.1], dropout_rate=[0.1, 0.2, 0.3])
+model = KerasRegressor(model=create_model)
 random_search = RandomizedSearchCV(estimator=model, param_distributions=param_distributions, cv=5, n_iter=10)
 random_search.fit(X_train, y_train)
 
