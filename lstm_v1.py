@@ -18,7 +18,38 @@ import talib
 import logging
 import datetime
 
+def cpugpu():
+    import tensorflow as tf
+    # Check if GPU is available and print the list of GPUs
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        for gpu in gpus:
+            print(f"Found GPU: {gpu}")
+    else:
+        print("No GPU devices found.")
+    
+    if gpus:
+        try:
+            # Enable memory growth to avoid allocating all GPU memory at once
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
 
+            # Specify the GPU device to use (e.g., use the first GPU)
+            tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
+            
+            # Test TensorFlow with a simple computation on the GPU
+            with tf.device('/GPU:0'):
+                a = tf.constant([1.0, 2.0, 3.0])
+                b = tf.constant([4.0, 5.0, 6.0])
+                c = a * b
+
+            print("GPU is available and TensorFlow is using it.")
+            print("Result of the computation on GPU:", c.numpy())
+        except RuntimeError as e:
+            print("Error while setting up GPU:", e)
+    else:
+        print("No GPU devices found, TensorFlow will use CPU.")
+        
 # Setup logging
 logging.basicConfig(filename='logfile.log', filemode='a',
                     level=logging.DEBUG,
