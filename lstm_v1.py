@@ -228,7 +228,7 @@ logging.info("Best parameters: %s", best_params)
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-model_checkpoint = ModelCheckpoint(f'best_model_{timestamp}.h5', save_best_only=True, monitor='val_loss')
+model_checkpoint = ModelCheckpoint(f'best_model_{timestamp}.keras', save_best_only=True, monitor='val_loss')
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5)
 tensorboard = TensorBoard(log_dir='./logs')
 csv_logger = CSVLogger('training_log.csv')
@@ -262,7 +262,7 @@ logging.info("Mean Absolute Percentage Error: %s", mape)
 
 # Saving the trained model and scaler object
 logging.info("Saving the trained model and scaler object...")
-best_model.model_.save('trained_model.h5')
+best_model.model_.save('trained_model.keras')
 import joblib
 joblib.dump(scaler, 'scaler.pkl')
 
