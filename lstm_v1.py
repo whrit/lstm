@@ -17,7 +17,7 @@ from scikeras.wrappers import KerasRegressor
 import talib
 import logging
 import datetime
-import tensorrt
+# import tensorrt
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
@@ -61,7 +61,7 @@ logging.info(f"TensorFlow Version: {tf.__version__}")
 
 # Fetch AAPL data
 logging.info("Fetching stock_data data...")
-stock_data = yf.download('AAPL', start='2020-01-01', end='2024-01-01')
+stock_data = yf.download('SPY', start='2019-01-01', end='2024-04-17')
 
 # Swap "Adj Close" data into the "Close" column
 logging.info("Swapping 'Adj Close' data into 'Close' column...")
