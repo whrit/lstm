@@ -301,15 +301,18 @@ joblib.dump(scaler, 'scaler.pkl')
 # Fetch the latest 60 days of AAPL stock data
 logging.info("Fetching the latest 60 days of AAPL stock data...")
 data = yf.download('SPY', period='60d', interval='1d')
-data.head()
+print("Columns after downloading data:", stock_data.columns)
+stock_data.head()
 
 # Swap "Adj Close" data into the "Close" column
 logging.info("Swapping 'Adj Close' data into 'Close' column...")
 stock_data['Close'] = stock_data['Adj Close']
+print("Columns after swapping 'Adj Close' with 'Close':", stock_data.columns)
 
 # Remove the "Adj Close" column
 logging.info("Removing 'Adj Close' column...")
 stock_data = stock_data.drop(columns=['Adj Close'])
+print("Columns after removing 'Adj Close':", stock_data.columns)
 
 # Checking for missing values
 logging.info("Checking for missing values...")
