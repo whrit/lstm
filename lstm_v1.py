@@ -268,7 +268,23 @@ joblib.dump(scaler, 'scaler.pkl')
 
 # Fetch the latest 60 days of AAPL stock data
 logging.info("Fetching the latest 60 days of AAPL stock data...")
-data = yf.download('AAPL', period='60d', interval='1d')
+data = yf.download('SPY', period='60d', interval='1d')
+
+# Swap "Adj Close" data into the "Close" column
+logging.info("Swapping 'Adj Close' data into 'Close' column...")
+stock_data['Close'] = stock_data['Adj Close']
+
+# Remove the "Adj Close" column
+logging.info("Removing 'Adj Close' column...")
+stock_data = stock_data.drop(columns=['Adj Close'])
+
+# Checking for missing values
+logging.info("Checking for missing values...")
+logging.info(stock_data.isnull().sum())
+
+# Filling missing values, if any
+logging.info("Filling missing values, if any...")
+stock_data.dropna(inplace=True)
 
 # Calculate the technical indicators for the latest data
 logging.info("Calculating technical indicators for the latest data...")
@@ -293,6 +309,12 @@ data['PLUS_DI'] = talib.PLUS_DI(data['High'], data['Low'], data['Close'], timepe
 data['MINUS_DI'] = talib.MINUS_DI(data['High'], data['Low'], data['Close'], timeperiod=14)
 data['PLUS_DM'] = talib.PLUS_DM(data['High'], data['Low'], timeperiod=14)
 data['MINUS_DM'] = talib.MINUS_DM(data['High'], data['Low'], timeperiod=14)
+
+logging.info("Checking for NaN values after calculating technical indicators...")
+logging.info(stock_data.isnull().sum())
+
+logging.info("Forward-filling NaN values...")
+stock_data.dropna(inplace=True)
 
 # Select the same features as used in training
 logging.info("Selecting the same features as used in training...")
