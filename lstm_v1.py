@@ -112,7 +112,8 @@ logging.info(stock_data.isnull().sum())
 
 # Filling missing values, if any
 logging.info("Filling missing values, if any...")
-stock_data.dropna(inplace=True)
+stock_data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+stock_data.dropna(inplace=True)  
 
 logging.info("Calculating technical indicators...")
 stock_data['SMA_10'] = talib.SMA(stock_data['Close'], timeperiod=10)
@@ -141,8 +142,8 @@ logging.info("Checking for NaN values after calculating technical indicators..."
 logging.info(stock_data.isnull().sum())
 
 logging.info("Forward-filling NaN values...")
-stock_data.dropna(inplace=True)
-
+stock_data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+stock_data.dropna(inplace=True)  
 # Perform correlation analysis
 logging.info("Performing correlation analysis...")
 corr_matrix = stock_data[['Close', 'Volume', 'SMA_10', 'SMA_50', 'EMA_20', 'RSI', 'STOCH_K', 'STOCH_D', 'MACD', 'MACDSIGNAL', 'MACDHIST', 'ADX', 'OBV', 'ATR', 'BBANDS_UPPER', 'BBANDS_MIDDLE', 'BBANDS_LOWER', 'MOM', 'CCI', 'WILLR', 'TSF', 'TRIX', 'ULTOSC', 'ROC', 'PLUS_DI', 'MINUS_DI', 'PLUS_DM', 'MINUS_DM']].corr()
@@ -310,7 +311,8 @@ logging.info(stock_data.isnull().sum())
 
 # Filling missing values, if any
 logging.info("Filling missing values, if any...")
-stock_data.dropna(inplace=True)
+data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+data.dropna(inplace=True)  
 
 # Calculate the technical indicators for the latest data
 logging.info("Calculating technical indicators for the latest data...")
@@ -340,7 +342,8 @@ logging.info("Checking for NaN values after calculating technical indicators..."
 logging.info(stock_data.isnull().sum())
 
 logging.info("Forward-filling NaN values...")
-stock_data.dropna(inplace=True)
+data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+data.dropna(inplace=True)  
 
 # Select the same features as used in training
 logging.info("Selecting the same features as used in training...")
