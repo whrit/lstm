@@ -9,7 +9,7 @@ from keras.models import Sequential, Model
 from keras.layers import LSTM, GRU, Dense, Dropout, AdditiveAttention, Permute, Reshape, Multiply, BatchNormalization, Flatten, Input
 from keras.optimizers import Adam, RMSprop, SGD
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard, CSVLogger
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error, root_mean_squared_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.feature_selection import SelectKBest, f_regression, RFE
 from sklearn.linear_model import LinearRegression   
@@ -251,7 +251,7 @@ y_pred = best_model.predict(X_test)
 
 # Calculating evaluation metrics
 mae = mean_absolute_error(y_test, y_pred)
-rmse = mean_squared_error(y_test, y_pred, squared=False)
+rmse = root_mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 mape = mean_absolute_percentage_error(y_test, y_pred)
 
@@ -263,12 +263,14 @@ logging.info("Mean Absolute Percentage Error: %s", mape)
 # Saving the trained model and scaler object
 logging.info("Saving the trained model and scaler object...")
 best_model.model_.save('trained_model.keras')
+
 import joblib
 joblib.dump(scaler, 'scaler.pkl')
 
 # Fetch the latest 60 days of AAPL stock data
 logging.info("Fetching the latest 60 days of AAPL stock data...")
 data = yf.download('SPY', period='60d', interval='1d')
+data.head()
 
 # Swap "Adj Close" data into the "Close" column
 logging.info("Swapping 'Adj Close' data into 'Close' column...")
