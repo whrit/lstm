@@ -309,10 +309,14 @@ stock_data.head()
 logging.info("Checking for missing values...")
 logging.info(stock_data.isnull().sum())
 
-# Filling missing values, if any
-logging.info("Filling missing values, if any...")
-data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
-data.dropna(inplace=True)  
+logging.info("Checking for missing values...")
+if data.isnull().sum().sum() > 0:
+    logging.info("NaN values found, handling...")
+    data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity
+    data.dropna(inplace=True)  # Drop remaining NaNs if any
+
+    if data.empty:
+        logging.error("Data is empty after filling NaN values. Adjust the filling strategy or check the data source.")
 
 # Calculate the technical indicators for the latest data
 logging.info("Calculating technical indicators for the latest data...")
@@ -338,24 +342,31 @@ data['MINUS_DI'] = talib.MINUS_DI(data['High'], data['Low'], data['Close'], time
 data['PLUS_DM'] = talib.PLUS_DM(data['High'], data['Low'], timeperiod=14)
 data['MINUS_DM'] = talib.MINUS_DM(data['High'], data['Low'], timeperiod=14)
 
-logging.info("Checking for NaN values after calculating technical indicators...")
-logging.info(stock_data.isnull().sum())
+if np.any(np.isnan(data)):
+    logging.error("NaN values detected after processing indicators")
+else:
+    logging.info("No NaN values present after processing indicators")
 
 logging.info("Forward-filling NaN values...")
 data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
 data.dropna(inplace=True)  
-
+    
 # Select the same features as used in training
 logging.info("Selecting the same features as used in training...")
 latest_data = data[selected_features]
 
-# Scale the latest data using the scaler fitted on the training data
-logging.info("Scaling the latest data...")
-scaled_latest_data = scaler.transform(latest_data)
+if latest_data.empty:
+    logging.error("Selected features resulted in an empty DataFrame. Check the selected_features list for errors.")
+else:
+    # Scaling
+    logging.info("Scaling the latest data...")
+    scaler = MinMaxScaler()
+    scaler.fit(latest_data)  # Use the scaler that was fit on the training data
+    scaled_latest_data = scaler.transform(latest_data)
 
-# Prepare the input data for prediction
-logging.info("Preparing the input data for prediction...")
-current_batch = scaled_latest_data[-60:].reshape(1, 60, len(selected_features))
+    # Reshape data for prediction
+    logging.info("Preparing the input data for prediction...")
+    current_batch = scaled_latest_data[-60:].reshape(1, 60, len(selected_features))
 
 # Predict the next 4 days iteratively
 logging.info("Predicting the next 4 days iteratively...")
