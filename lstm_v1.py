@@ -18,6 +18,7 @@ import talib
 import logging
 import datetime
 import tensorrt
+import os
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
@@ -58,6 +59,36 @@ logging.info("Starting script execution.")
 
 # Check TensorFlow version
 logging.info(f"TensorFlow Version: {tf.__version__}")
+
+def check_model_existence(model_path):
+    """Check if the model file exists at the specified path."""
+    return os.path.exists(model_path)
+
+def user_choice_to_continue(existing_model):
+    """Prompt user to decide to use existing model or retrain."""
+    response = input(f"Model found at {existing_model}. Do you want to use it? (yes/no): ").strip().lower()
+    return response == 'yes'
+
+def load_model(model_path):
+    """Load the model from the specified path."""
+    return tf.keras.models.load_model(model_path)
+
+# Define the path to the model
+model_path = 'trained_model.keras'
+
+# Check if the model exists
+if check_model_existence(model_path):
+    if user_choice_to_continue(model_path):
+        # Load the existing model
+        model = load_model(model_path)
+        print("Model loaded successfully.")
+    else:
+        # Proceed with training a new model
+        print("Starting new training session...")
+        # (Insert your model training code here)
+else:
+    print("No existing model found. Starting new training session...")
+    # (Insert your model training code here)
 
 # Fetch AAPL data
 logging.info("Fetching stock_data data...")
