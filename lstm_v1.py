@@ -369,25 +369,25 @@ else:
     current_batch = scaled_latest_data[-60:].reshape(1, 60, len(selected_features))
 
 # Predict the next 4 days iteratively
-logging.info("Predicting the next 4 days iteratively...")
-predicted_prices = []
+    logging.info("Predicting the next 4 days iteratively...")
+    predicted_prices = []
 
-for i in range(4):  # Predicting 4 days
-    logging.info(f"Predicting day {i+1}...")
+    for i in range(4):  # Predicting 4 days
+        logging.info(f"Predicting day {i+1}...")
 
-    # Get the prediction (next day)
-    next_prediction = best_model.predict(current_batch)
-    logging.info(f"Predicted price (scaled): {next_prediction[0][0]}")
+        # Get the prediction (next day)
+        next_prediction = best_model.predict(current_batch)
+        logging.info(f"Predicted price (scaled): {next_prediction[0][0]}")
 
-    # Reshape the prediction to fit the batch dimension
-    next_prediction_reshaped = next_prediction.reshape(1, 1, 1)
+        # Reshape the prediction to fit the batch dimension
+        next_prediction_reshaped = next_prediction.reshape(1, 1, 1)
 
-    # Append the prediction to the batch used for predicting
-    current_batch = np.append(current_batch[:, 1:, :], next_prediction_reshaped, axis=1)
+        # Append the prediction to the batch used for predicting
+        current_batch = np.append(current_batch[:, 1:, :], next_prediction_reshaped, axis=1)
 
-    # Inverse transform the prediction to the original price scale
-    predicted_price = scaler.inverse_transform(next_prediction.reshape(1, -1))[0, 0]
-    predicted_prices.append(predicted_price)
-    logging.info(f"Predicted price (original scale): {predicted_price}")
+        # Inverse transform the prediction to the original price scale
+        predicted_price = scaler.inverse_transform(next_prediction.reshape(1, -1))[0, 0]
+        predicted_prices.append(predicted_price)
+        logging.info(f"Predicted price (original scale): {predicted_price}")
 
 logging.info("Predicted Stock Prices for the next 4 days: %s", predicted_prices)
