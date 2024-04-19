@@ -17,7 +17,7 @@ from scikeras.wrappers import KerasRegressor
 import talib
 import logging
 import datetime
-# import tensorrt
+import tensorrt
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
