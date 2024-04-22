@@ -355,6 +355,8 @@ data.dropna(inplace=True)
 logging.info("Selecting the same features as used in training...")
 latest_data = data[selected_features]
 
+predicted_prices = []
+
 if latest_data.empty:
     logging.error("Selected features resulted in an empty DataFrame. Check the selected_features list for errors.")
 else:
@@ -369,9 +371,8 @@ else:
     current_batch = scaled_latest_data[-60:].reshape(1, 60, len(selected_features))
 
 # Predict the next 4 days iteratively
-    logging.info("Predicting the next 4 days iteratively...")
-    predicted_prices = []
-
+    logging.info("Predicting the next 4 days iteratively...")   
+    
     for i in range(4):  # Predicting 4 days
         logging.info(f"Predicting day {i+1}...")
 
@@ -390,4 +391,4 @@ else:
         predicted_prices.append(predicted_price)
         logging.info(f"Predicted price (original scale): {predicted_price}")
 
-logging.info("Predicted Stock Prices for the next 4 days: %s", predicted_prices)
+    logging.info("Predicted Stock Prices for the next 4 days: %s", predicted_prices)
