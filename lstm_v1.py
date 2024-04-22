@@ -112,7 +112,7 @@ logging.info(stock_data.isnull().sum())
 
 # Filling missing values, if any
 logging.info("Filling missing values, if any...")
-stock_data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+stock_data.obj.ffill(inplace=True)  # Forward fill to maintain continuity in stock data
 stock_data.dropna(inplace=True)  
 
 logging.info("Calculating technical indicators...")
@@ -142,7 +142,7 @@ logging.info("Checking for NaN values after calculating technical indicators..."
 logging.info(stock_data.isnull().sum())
 
 logging.info("Forward-filling NaN values...")
-stock_data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+stock_data.obj.ffill(inplace=True)  # Forward fill to maintain continuity in stock data
 stock_data.dropna(inplace=True)  
 # Perform correlation analysis
 logging.info("Performing correlation analysis...")
@@ -312,7 +312,7 @@ logging.info(stock_data.isnull().sum())
 logging.info("Checking for missing values...")
 if data.isnull().sum().sum() > 0:
     logging.info("NaN values found, handling...")
-    data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity
+    data.obj.ffill(inplace=True)  # Forward fill to maintain continuity
     data.dropna(inplace=True)  # Drop remaining NaNs if any
 
     if data.empty:
@@ -348,7 +348,7 @@ else:
     logging.info("No NaN values present after processing indicators")
 
 logging.info("Forward-filling NaN values...")
-data.fillna(method='ffill', inplace=True)  # Forward fill to maintain continuity in stock data
+data.obj.ffill(inplace=True)  # Forward fill to maintain continuity in stock data
 data.dropna(inplace=True)  
     
 # Select the same features as used in training
