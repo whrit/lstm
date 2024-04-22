@@ -301,7 +301,7 @@ joblib.dump(scaler, 'scaler.pkl')
 
 # Fetch the latest 60 days of AAPL stock data
 logging.info("Fetching the latest 60 days of AAPL stock data...")
-data = yf.download('SPY', period='60d', interval='1d')
+data = yf.download('SPY', period='90d', interval='1d')
 print("Columns after downloading data:", stock_data.columns)
 stock_data.head()
 
