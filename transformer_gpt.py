@@ -9,6 +9,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from torch.utils.data import DataLoader, TensorDataset
 from torch.optim.lr_scheduler import OneCycleLR
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.base import BaseEstimator, RegressorMixin
 import logging
 import talib
 import yfinance as yf
@@ -120,179 +121,16 @@ class PositionalEncoding(nn.Module):
 
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + self.pe[:x.size(0)]
+        x = x + self.pe[:x.size(1), :]
         return self.dropout(x)
 
-# Define the TransformerModel class
-class TransformerModel(nn.Module):
-    def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
-        super(TransformerModel, self).__init__()
-        self.model_type = 'Transformer'
-        self.src_mask = None
-
-        # Adjust d_model to be divisible by n_heads
-        d_model = n_heads * (d_model // n_heads)
-
-        self.pos_encoder = PositionalEncoding(d_model, dropout)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model, n_heads, n_hidden, dropout, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, n_layers)
-        self.decoder = nn.Linear(d_model, n_features)
-        self.init_weights()
-
-    def _generate_square_subsequent_mask(self, sz):
-        mask = torch.triu(torch.ones(sz, sz), diagonal=1)
-        mask = mask.masked_fill(mask == 1, float('-inf'))
-        return mask
-
-    def init_weights(self):
-        initrange = 0.1
-        self.decoder.bias.data.zero_()
-        self.decoder.weight.data.uniform_(-initrange, initrange)
-
-    def forward(self, x):
-        x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
-        sequence_length = x.size(0)
-        if self.src_mask is None or self.src_mask.size(1) != sequence_length:
-            mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
-            self.src_mask = mask.unsqueeze(0).repeat(self.encoder_layer.self_attn.num_heads, 1, 1)
-        else:
-            self.src_mask = self.src_mask.to(x.device)  # Move the existing mask to the appropriate device
-        x = self.pos_encoder(x)
-        output = self.transformer_encoder(x, self.src_mask)
-        output = self.decoder(output)
-        return output[-steps:].squeeze()
-
-class TransformerEstimator:
-    def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
-        self.n_features = n_features
-        self.d_model = d_model
-        self.n_heads = n_heads
-        self.n_hidden = n_hidden
-        self.n_layers = n_layers
-        self.dropout = dropout
-        self.model = None
-
-    def fit(self, X, y):
-        self.model = TransformerModel(
-            n_features=self.n_features,
-            d_model=self.d_model,
-            n_heads=self.n_heads,
-            n_hidden=self.n_hidden,
-            n_layers=self.n_layers,
-            dropout=self.dropout
-        )
-        criterion = nn.MSELoss()
-        optimizer = optim.AdamW(self.model.parameters(), lr=0.001)
-        train_dataset = TensorDataset(X, y)
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)  # Adjust the batch size as needed
-        self.model.to(device)
-        self.model.train()
-        for _ in range(5):  # Adjust the number of epochs as needed
-            for batch in train_loader:
-                optimizer.zero_grad()
-                sequences, labels = batch
-                sequences, labels = sequences.to(device), labels.to(device)
-                predictions = self.model(sequences)
-                loss = criterion(predictions, labels)
-                loss.backward()
-                optimizer.step()
-        return self
-
-    def predict(self, X):
-        self.model.eval()
-        with torch.no_grad():
-            X = X.to(device)
-            predictions = self.model(X)
-        return predictions.cpu().numpy()
-
-    def score(self, X, y):
-        predictions = self.predict(X)
-        y_np = y.cpu().numpy().flatten()  # Convert y to numpy array and flatten it
-        predictions_flat = predictions.flatten()  # Flatten the predictions array
-        
-        # Ensure that y_np and predictions_flat have the same length
-        min_length = min(len(y_np), len(predictions_flat))
-        y_np = y_np[:min_length]
-        predictions_flat = predictions_flat[:min_length]
-        
-        mse = mean_squared_error(y_np, predictions_flat)
-        return -mse  # Negative MSE as score for maximization
-    
-    def get_params(self, deep=True):
-        return {
-            'n_features': self.n_features,
-            'd_model': self.d_model,
-            'n_heads': self.n_heads,
-            'n_hidden': self.n_hidden,
-            'n_layers': self.n_layers,
-            'dropout': self.dropout
-        }
-
-    def set_params(self, **parameters):
-        for parameter, value in parameters.items():
-            setattr(self, parameter, value)
-        return self
-
-# Define the parameter grid for hyperparameter tuning
-param_grid = {
-    'n_layers': [2, 4, 6],
-    'n_heads': [4, 8, 12],
-    'n_hidden': [256, 512, 1024],
-    'dropout': [0.1, 0.2, 0.3]
-}
-
-n_features = steps  # Define n_features
-transformer_estimator = TransformerEstimator(
-    n_features=n_features,
-    d_model=128,
-    n_heads=None,
-    n_hidden=None,
-    n_layers=None,
-    dropout=None
-)
-
-# Perform grid search
-search = GridSearchCV(estimator=transformer_estimator, param_grid=param_grid, cv=5, verbose=2)
-search.fit(X_train_tensor, y_train_tensor)
-
-# Get the best model and hyperparameters
-best_model = search.best_estimator_.model
-best_params = search.best_params_
-print("Best hyperparameters:", best_params)
-
-# Increase model complexity
-complex_model = TransformerModel(
-    n_features=n_features,
-    d_model=128,
-    n_heads=12,
-    n_hidden=1024,
-    n_layers=6,
-    dropout=0.2
-)
-
-# Move models to appropriate device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-best_model.to(device)
-complex_model.to(device)
-
-# Loss Function
-criterion = nn.MSELoss()
-
-# Optimizer
-optimizer = optim.AdamW(best_model.parameters(), lr=best_params['lr'])
-optimizer_complex = optim.AdamW(complex_model.parameters(), lr=best_params['lr'])
-
-# Scheduler - OneCycleLR
-scheduler = OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=50)
-scheduler_complex = OneCycleLR(optimizer_complex, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=50)
-
-# Early Stopping
+# Define the EarlyStopping class
 class EarlyStopping:
     def __init__(self, patience=5, verbose=False, delta=0, path='checkpoint.pt'):
         self.patience = patience
@@ -327,8 +165,161 @@ class EarlyStopping:
         torch.save(model.state_dict(), self.path)  # Directly save the model's state_dict
         self.val_loss_min = val_loss
 
-best_model.to(device)
+# Define the TransformerModel class
+class TransformerModel(nn.Module):
+    def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
+        super(TransformerModel, self).__init__()
+        self.model_type = 'Transformer'
+        self.src_mask = None
+        self.pos_encoder = PositionalEncoding(d_model, dropout)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model, n_heads, n_hidden, dropout, batch_first=True)
+        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, n_layers)
+        self.decoder = nn.Linear(d_model, n_features)
+        self.init_weights()
+
+    def _generate_square_subsequent_mask(self, sz):
+        mask = torch.triu(torch.ones(sz, sz), diagonal=1)
+        mask = mask.masked_fill(mask == 1, float('-inf'))
+        return mask
+
+    def init_weights(self):
+        initrange = 0.1
+        self.decoder.bias.data.zero_()
+        self.decoder.weight.data.uniform_(-initrange, initrange)
+
+    def forward(self, x):
+        x = x.unsqueeze(-1)  # Add a feature dimension
+        if self.src_mask is None or self.src_mask.size(0) != x.size(1):
+            mask = self._generate_square_subsequent_mask(x.size(1)).to(x.device)
+            self.src_mask = mask
+        x = self.pos_encoder(x)
+        output = self.transformer_encoder(x, self.src_mask)
+        output = self.decoder(output)
+        return output.squeeze(-1)  # Squeeze the last dimension
+
+# Define the custom scikit-learn estimator
+class TransformerRegressor(BaseEstimator, RegressorMixin):
+    def __init__(self, n_layers=4, n_heads=8, n_hidden=512, dropout=0.1, lr=0.001, batch_size=64, epochs=50, patience=5):
+        self.n_layers = n_layers
+        self.n_heads = n_heads
+        self.n_hidden = n_hidden
+        self.dropout = dropout
+        self.lr = lr
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.patience = patience
+        self.model = None
+
+    def fit(self, X, y):
+        n_features = steps  # Adjust the output features for multi-step
+        self.model = TransformerModel(n_features=n_features, d_model=128, n_heads=self.n_heads, n_hidden=self.n_hidden, n_layers=self.n_layers, dropout=self.dropout)
+        self.model.to(device)
+
+        # Create DataLoader instances
+        dataset = TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32))
+        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+        # Loss Function
+        criterion = nn.MSELoss()
+
+        # Optimizer
+        optimizer = optim.AdamW(self.model.parameters(), lr=self.lr)
+
+        # Scheduler - OneCycleLR
+        scheduler = OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(dataloader), epochs=self.epochs)
+
+        # Early Stopping
+        early_stopping = EarlyStopping(patience=self.patience, verbose=True)
+
+        # GradScaler for mixed precision training
+        scaler = GradScaler()
+
+        for epoch in range(self.epochs):
+            self.model.train()
+            total_loss = 0
+            for batch in dataloader:
+                optimizer.zero_grad()
+                sequences, labels = batch
+                sequences, labels = sequences.to(device), labels.to(device)
+                with autocast():
+                    predictions = self.model(sequences)
+                    loss = criterion(predictions, labels)
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+                scheduler.step()
+                total_loss += loss.item()
+
+            validation_loss = self.evaluate(dataloader, criterion)
+            print(f'Epoch {epoch+1}: Training Loss: {total_loss/len(dataloader)}, Validation Loss: {validation_loss}')
+
+            early_stopping(validation_loss, self.model)
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
+
+        # Load the last checkpoint with the best model
+        self.model.load_state_dict(torch.load('checkpoint.pt', map_location=device))
+
+        return self
+
+    def evaluate(self, dataloader, criterion):
+        self.model.eval()
+        total_loss = 0
+        with torch.no_grad():
+            for batch in dataloader:
+                sequences, labels = batch
+                sequences, labels = sequences.to(device), labels.to(device)
+                predictions = self.model(sequences)
+                loss = criterion(predictions, labels)
+                total_loss += loss.item()
+        return total_loss / len(dataloader)
+
+    def predict(self, X):
+        self.model.eval()
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(device)
+        with torch.no_grad():
+            predictions = self.model(X_tensor)
+        return predictions.cpu().numpy()
+
+# Define the parameter grid for hyperparameter tuning
+param_grid = {
+    'n_layers': [2, 4, 6],
+    'n_heads': [4, 8, 12],
+    'n_hidden': [256, 512, 1024],
+    'dropout': [0.1, 0.2, 0.3],
+    'lr': [0.001, 0.0001],
+    'batch_size': [32, 64, 128]
+}
+
+# Perform grid search or random search
+search = GridSearchCV(estimator=TransformerRegressor(), param_grid=param_grid, cv=5, verbose=2, n_jobs=-1)
+# search = RandomizedSearchCV(estimator=TransformerRegressor(), param_distributions=param_grid, cv=5, verbose=2, n_iter=10, n_jobs=-1)
+search.fit(X_train, y_train)
+
+# Get the best model and hyperparameters
+best_model = search.best_estimator_
+best_params = search.best_params_
+print("Best hyperparameters:", best_params)
+
+# Increase model complexity
+n_features = steps  # Define n_features before using it
+complex_model = TransformerModel(n_features=n_features, d_model=128, n_heads=8, n_hidden=1024, n_layers=6, dropout=0.2)
+
+# Move models to appropriate device
+best_model.model.to(device)
 complex_model.to(device)
+
+# Loss Function
+criterion = nn.MSELoss()
+
+# Optimizer
+optimizer = optim.AdamW(best_model.model.parameters(), lr=best_params['lr'])
+optimizer_complex = optim.AdamW(complex_model.parameters(), lr=best_params['lr'])
+
+# Scheduler - OneCycleLR
+scheduler = OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=50)
+scheduler_complex = OneCycleLR(optimizer_complex, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=50)
 
 # Training function
 def train_model(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs, patience):
@@ -354,9 +345,9 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            scheduler.step()
             total_loss += loss.item()
-        
+            scheduler.step()  # Move scheduler.step() here
+
         validation_loss = evaluate(model, test_loader, criterion)
         print(f'Epoch {epoch+1}: Training Loss: {total_loss/len(train_loader)}, Validation Loss: {validation_loss}')
         
@@ -382,28 +373,20 @@ def evaluate(model, val_loader, criterion):
     return total_loss / len(val_loader)
 
 # Run the training loop for the best model
-train_model(best_model, train_loader, test_loader, optimizer, criterion, scheduler, epochs=50, patience=5)
+train_model(best_model.model, train_loader, test_loader, optimizer, criterion, scheduler, epochs=50, patience=5)
 
 # Run the training loop for the complex model
 train_model(complex_model, train_loader, test_loader, optimizer_complex, criterion, scheduler_complex, epochs=50, patience=5)
 
 # Ensemble modeling
 ensemble_models = [
-    best_model,
+    best_model.model,
     complex_model,
-    TransformerModel(
-        n_features=n_features,
-        d_model=256,
-        n_heads=8,
-        n_hidden=512,
-        n_layers=4,
-        dropout=0.1
-    )
+    TransformerModel(n_features=n_features, d_model=256, n_heads=8, n_hidden=512, n_layers=4, dropout=0.1)
 ]
 
 ensemble_preds = []
 for model in ensemble_models:
-    model.to(device)  # Move the model to the appropriate device
     model.eval()
     preds = []
     with torch.no_grad():
@@ -420,7 +403,7 @@ ensemble_preds = np.mean(ensemble_preds, axis=0)
 # ensemble_preds = np.average(ensemble_preds, axis=0, weights=[0.4, 0.3, 0.3])  # Example weights
 
 # Evaluate on test data, adjusted for multi-step
-test_loss = evaluate(best_model, test_loader, criterion)
+test_loss = evaluate(best_model.model, test_loader, criterion)
 print(f'Test Loss: {test_loss}')
 
 # Calculate and print additional metrics, adjusted for multi-step
@@ -430,7 +413,7 @@ with torch.no_grad():
     for batch in test_loader:
         sequences, labels = batch
         sequences, labels = sequences.to(device), labels.to(device)
-        predictions = best_model(sequences)
+        predictions = best_model.model(sequences)
         # Adjust shape for multi-step predictions
         y_pred.extend(predictions.view(-1).cpu().numpy())
         y_true.extend(labels.view(-1).cpu().numpy())
@@ -461,7 +444,7 @@ import matplotlib.pyplot as plt
 time_steps = np.arange(len(y_true))
 
 # Plot actual vs predicted prices
-plt.figure(figsize=((8,7)))  # Size of the plot
+plt.figure(figsize=(8, 7))  # Size of the plot
 plt.plot(time_steps, y_true, label='Actual Prices', color='blue', linewidth=2)  # Actual prices in blue
 plt.plot(time_steps, y_pred, label='Predicted Prices', color='red', linewidth=2)  # Predicted prices in red
 
@@ -503,4 +486,4 @@ num_train_pairs = calculate_input_output_pairs(num_train_obs, sequence_length)
 num_test_pairs = calculate_input_output_pairs(num_test_obs, sequence_length)
 
 print(f'Number of input-output pairs in the training dataset: {num_train_pairs}')
-print(f'Number of input-output pairs in the testing dataset: {num_test_pairs}') 
+print(f'Number of input-output pairs in the testing dataset: {num_test_pairs}')
