@@ -195,7 +195,7 @@ class TransformerModel(nn.Module):
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output.squeeze(-1)  # Squeeze the last dimension
+        return output.squeeze(-1)[:, -steps:]  # Ensure output size matches target size
 
 # Define the custom scikit-learn estimator
 class TransformerRegressor(BaseEstimator, RegressorMixin):
@@ -345,9 +345,9 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
+            scheduler.step()
             total_loss += loss.item()
-            scheduler.step()  # Move scheduler.step() here
-
+        
         validation_loss = evaluate(model, test_loader, criterion)
         print(f'Epoch {epoch+1}: Training Loss: {total_loss/len(train_loader)}, Validation Loss: {validation_loss}')
         
