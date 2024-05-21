@@ -322,9 +322,8 @@ warnings.filterwarnings("error", category=UserWarning, module="torch.optim.lr_sc
 
 def train_model(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs, patience):
     early_stopping = EarlyStopping(patience=patience, verbose=True)
-    
     scaler = GradScaler()
-    
+
     for epoch in range(epochs):
         model.train()
         total_loss = 0
@@ -332,7 +331,7 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
             optimizer.zero_grad()
             sequences, labels = batch
             sequences, labels = sequences.to(device), labels.to(device)
-            
+
             with autocast():
                 try:
                     predictions = model(sequences)
@@ -341,23 +340,23 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
                     print("Warning occurred:")
                     print(str(w))
                     traceback.print_exc()
-            
+
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            total_loss += loss.item()
-        
-        optimizer.step()  # Move optimizer.step() here, before scheduler.step()
-        scheduler.step()  # Call scheduler.step() after optimizer.step()
-        
+            total_loss += loss.item()  # Moved this line inside the loop to accumulate losses
+
+        # Call scheduler.step() and optimizer.step() outside the loop, in the correct order
+        scheduler.step()
+        optimizer.step()
+
         validation_loss = evaluate(model, test_loader, criterion)
         print(f'Epoch {epoch+1}: Training Loss: {total_loss/len(train_loader)}, Validation Loss: {validation_loss}')
-        
         early_stopping(validation_loss, model)
         if early_stopping.early_stop:
             print("Early stopping")
             break
-    
+
     model.load_state_dict(torch.load('checkpoint.pt', map_location=device))
 
 def evaluate(model, val_loader, criterion):
