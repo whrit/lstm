@@ -133,7 +133,6 @@ class TransformerModel(nn.Module):
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
         super(TransformerModel, self).__init__()
         self.model_type = 'Transformer'
-        self.src_mask = None
 
         # Adjust d_model to be divisible by n_heads
         d_model = n_heads * (d_model // n_heads)
@@ -155,8 +154,8 @@ class TransformerModel(nn.Module):
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, x):
-        batch_size, sequence_length = x.size(0), x.size(1)
-        x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
+        sequence_length = x.size(1)
+        x = x.unsqueeze(-1)  # Add a feature dimension
 
         if self.src_mask is None or self.src_mask.size(0) != sequence_length:
             self.src_mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
@@ -164,8 +163,9 @@ class TransformerModel(nn.Module):
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output.transpose(0, 1).squeeze()
+        return output.squeeze(-1)  # Remove the feature dimension
 
+# Adjust the TransformerEstimator to fit this change
 class TransformerEstimator:
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
         self.n_features = n_features
