@@ -141,6 +141,7 @@ class TransformerModel(nn.Module):
 
         self.pos_encoder = PositionalEncoding(d_model, dropout)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model, n_heads, n_hidden, dropout, batch_first=True)
+        print(f"src_mask shape: {self.src_mask.shape}")
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, n_layers)
         self.decoder = nn.Linear(d_model, n_features)
         self.init_weights()
@@ -148,7 +149,6 @@ class TransformerModel(nn.Module):
     def _generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz), diagonal=1)
         mask = mask.masked_fill(mask == 1, float('-inf'))
-        mask = mask.unsqueeze(0).expand(self.encoder_layer.self_attn.num_heads, -1, -1)
         return mask
 
     def init_weights(self):
@@ -159,10 +159,11 @@ class TransformerModel(nn.Module):
     def forward(self, x):
         batch_size, sequence_length = x.size(0), x.size(1)
         x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
-        if self.src_mask is None or self.src_mask.size(1) != sequence_length:
+        if self.src_mask is None or self.src_mask.size(0) != sequence_length:
             mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
-            self.src_mask = mask
+            self.src_mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
         x = self.pos_encoder(x)
+        print(f"src_mask shape: {self.src_mask.shape}")
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
         return output[-steps:].squeeze().view(batch_size, -1)
