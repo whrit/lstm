@@ -145,11 +145,6 @@ class TransformerModel(nn.Module):
         self.decoder = nn.Linear(d_model, n_features)
         self.init_weights()
 
-    def _generate_square_subsequent_mask(self, sz):
-        mask = torch.triu(torch.ones(sz, sz), diagonal=1)
-        mask = mask.masked_fill(mask == 1, float('-inf'))
-        return mask
-
     def init_weights(self):
         initrange = 0.1
         self.decoder.bias.data.zero_()
@@ -158,11 +153,13 @@ class TransformerModel(nn.Module):
     def forward(self, x):
         batch_size, sequence_length = x.size(0), x.size(1)
         x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
-        if self.src_mask is None or self.src_mask.size(0) != sequence_length:
-            mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
-            self.src_mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
         x = self.pos_encoder(x)
-        output = self.transformer_encoder(x, self.src_mask)
+        
+        # Generate the mask and pass it to the transformer_encoder
+        mask = torch.triu(torch.ones(sequence_length, sequence_length), diagonal=1).to(x.device)
+        mask = mask.masked_fill(mask == 1, float('-inf')).unsqueeze(0)
+        
+        output = self.transformer_encoder(x, mask)
         output = self.decoder(output)
         return output[-steps:].squeeze().view(batch_size, -1)
 
