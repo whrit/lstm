@@ -141,7 +141,6 @@ class TransformerModel(nn.Module):
 
         self.pos_encoder = PositionalEncoding(d_model, dropout)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model, n_heads, n_hidden, dropout, batch_first=True)
-        print(f"src_mask shape: {self.src_mask.shape}")
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, n_layers)
         self.decoder = nn.Linear(d_model, n_features)
         self.init_weights()
@@ -163,7 +162,6 @@ class TransformerModel(nn.Module):
             mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
             self.src_mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
         x = self.pos_encoder(x)
-        print(f"src_mask shape: {self.src_mask.shape}")
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
         return output[-steps:].squeeze().view(batch_size, -1)
