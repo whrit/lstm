@@ -13,6 +13,8 @@ from sklearn.base import BaseEstimator, RegressorMixin
 import logging
 import talib
 import yfinance as yf
+import traceback
+import warnings
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -316,7 +318,8 @@ optimizer_complex = optim.AdamW(complex_model.parameters(), lr=best_params['lr']
 scheduler = OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=50)
 scheduler_complex = OneCycleLR(optimizer_complex, max_lr=0.01, steps_per_epoch=len(train_loader), epochs=50)
 
-# Training function
+warnings.filterwarnings("error", category=UserWarning, module="torch.optim.lr_scheduler")
+
 def train_model(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs, patience):
     early_stopping = EarlyStopping(patience=patience, verbose=True)
 
@@ -331,14 +334,21 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
             sequences, labels = sequences.to(device), labels.to(device)
             
             with autocast():
-                predictions = model(sequences)
-                loss = criterion(predictions, labels)
+                try:
+                    predictions = model(sequences)
+                    loss = criterion(predictions, labels)
+                except Warning as w:
+                    print("Warning occurred:")
+                    print(str(w))
+                    traceback.print_exc()
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            scheduler.step()
             total_loss += loss.item()
+
+        optimizer.step()  # Move optimizer.step() here, before scheduler.step()
+        scheduler.step()  # Call scheduler.step() after optimizer.step()
         
         validation_loss = evaluate(model, test_loader, criterion)
         print(f'Epoch {epoch+1}: Training Loss: {total_loss/len(train_loader)}, Validation Loss: {validation_loss}')
