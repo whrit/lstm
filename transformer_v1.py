@@ -160,10 +160,7 @@ class TransformerModel(nn.Module):
         x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
         if self.src_mask is None or self.src_mask.size(0) != sequence_length:
             mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
-            self.src_mask = mask
-        else:
-            print(f"src_mask shape: {self.src_mask.shape}")  # Debug print statement
-        print(f"x shape: {x.shape}")  # Debug print statement
+            self.src_mask = mask.unsqueeze(0).expand(batch_size, -1, -1)  # Add batch dimension and expand
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
