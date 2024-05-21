@@ -129,10 +129,12 @@ class PositionalEncoding(nn.Module):
         x = x + self.pe[:x.size(0)]
         return self.dropout(x)
 
+# Define the TransformerModel class
 class TransformerModel(nn.Module):
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
         super(TransformerModel, self).__init__()
         self.model_type = 'Transformer'
+        self.src_mask = None
 
         # Adjust d_model to be divisible by n_heads
         d_model = n_heads * (d_model // n_heads)
@@ -146,6 +148,7 @@ class TransformerModel(nn.Module):
     def _generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz), diagonal=1)
         mask = mask.masked_fill(mask == 1, float('-inf'))
+        mask = mask.unsqueeze(0).expand(self.encoder_layer.self_attn.num_heads, -1, -1)
         return mask
 
     def init_weights(self):
@@ -154,18 +157,16 @@ class TransformerModel(nn.Module):
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, x):
-        sequence_length = x.size(1)
-        x = x.unsqueeze(-1)  # Add a feature dimension
-
-        if self.src_mask is None or self.src_mask.size(0) != sequence_length:
-            self.src_mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
-
+        batch_size, sequence_length = x.size(0), x.size(1)
+        x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
+        if self.src_mask is None or self.src_mask.size(1) != sequence_length:
+            mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
+            self.src_mask = mask
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output.squeeze(-1)  # Remove the feature dimension
+        return output[-steps:].squeeze().view(batch_size, -1)
 
-# Adjust the TransformerEstimator to fit this change
 class TransformerEstimator:
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
         self.n_features = n_features
@@ -188,10 +189,10 @@ class TransformerEstimator:
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=0.001)
         train_dataset = TensorDataset(X, y)
-        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)  # Adjust the batch size as needed
         self.model.to(device)
         self.model.train()
-        for _ in range(5):
+        for _ in range(5):  # Adjust the number of epochs as needed
             for batch in train_loader:
                 optimizer.zero_grad()
                 sequences, labels = batch
@@ -211,14 +212,17 @@ class TransformerEstimator:
 
     def score(self, X, y):
         predictions = self.predict(X)
-        y_np = y.cpu().numpy().flatten()
-        predictions_flat = predictions.flatten()
+        y_np = y.cpu().numpy().flatten()  # Convert y to numpy array and flatten it
+        predictions_flat = predictions.flatten()  # Flatten the predictions array
+        
+        # Ensure that y_np and predictions_flat have the same length
         min_length = min(len(y_np), len(predictions_flat))
         y_np = y_np[:min_length]
         predictions_flat = predictions_flat[:min_length]
+        
         mse = mean_squared_error(y_np, predictions_flat)
-        return -mse
-
+        return -mse  # Negative MSE as score for maximization
+    
     def get_params(self, deep=True):
         return {
             'n_features': self.n_features,
@@ -242,7 +246,7 @@ param_grid = {
     'dropout': [0.1, 0.2, 0.3]
 }
 
-n_features = steps
+n_features = steps  # Define n_features
 transformer_estimator = TransformerEstimator(
     n_features=n_features,
     d_model=128,
@@ -498,4 +502,4 @@ num_train_pairs = calculate_input_output_pairs(num_train_obs, sequence_length)
 num_test_pairs = calculate_input_output_pairs(num_test_obs, sequence_length)
 
 print(f'Number of input-output pairs in the training dataset: {num_train_pairs}')
-print(f'Number of input-output pairs in the testing dataset: {num_test_pairs}') 
+print(f'Number of input-output pairs in the testing dataset: {num_test_pairs}')
