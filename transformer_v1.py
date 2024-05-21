@@ -145,9 +145,9 @@ class TransformerModel(nn.Module):
         self.decoder = nn.Linear(d_model, n_features)
         self.init_weights()
 
-    def _generate_square_subsequent_mask(self, sz, num_heads):
-        mask = torch.triu(torch.ones(sz, sz), diagonal=1)
-        mask = mask.masked_fill(mask == 1, float('-inf')).unsqueeze(0).repeat(num_heads, 1, 1)
+    def _generate_square_subsequent_mask(self, sz):
+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         return mask
 
     def init_weights(self):
@@ -156,18 +156,15 @@ class TransformerModel(nn.Module):
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, x):
-        batch_size, sequence_length = x.size(0), x.size(1)
-        x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
-        if self.src_mask is None or self.src_mask.size(1) != sequence_length:
-            mask = self._generate_square_subsequent_mask(sequence_length, self.encoder_layer.self_attn.num_heads).to(x.device)
+        if self.src_mask is None or self.src_mask.size(0) != len(x):
+            device = x.device
+            mask = self._generate_square_subsequent_mask(len(x)).to(device)
             self.src_mask = mask
-        else:
-            print(f"src_mask shape: {self.src_mask.shape}")  # Debug print statement
-        print(f"x shape: {x.shape}")  # Debug print statement
+        x = x.unsqueeze(-1).transpose(0, 1) 
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output[-steps:].squeeze().view(batch_size, -1)
+        return output[-steps:].transpose(0,1).squeeze()  
 
 class TransformerEstimator:
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):

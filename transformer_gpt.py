@@ -340,23 +340,33 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
                     print("Warning occurred:")
                     print(str(w))
                     traceback.print_exc()
-
+            
+            # Get the scaler state BEFORE updating
+            before_step_scale = scaler.get_scale()
+            
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            total_loss += loss.item()  # Moved this line inside the loop to accumulate losses
+            total_loss += loss.item()  
 
-        # Call scheduler.step() and optimizer.step() outside the loop, in the correct order
-        scheduler.step()
+            # Check if the scaler skipped the optimizer step
+            if before_step_scale == scaler.get_scale():
+                scheduler.step()  # Only step the scheduler if the optimizer was updated
+            else:
+                print("Optimizer step was skipped due to inf/NaN gradients. Skipping scheduler step.")
+
+        # Call optimizer.step() once per epoch, outside of the loop
         optimizer.step()
 
         validation_loss = evaluate(model, test_loader, criterion)
         print(f'Epoch {epoch+1}: Training Loss: {total_loss/len(train_loader)}, Validation Loss: {validation_loss}')
+
         early_stopping(validation_loss, model)
         if early_stopping.early_stop:
             print("Early stopping")
             break
 
+    # Load the last checkpoint with the best model
     model.load_state_dict(torch.load('checkpoint.pt', map_location=device))
 
 def evaluate(model, val_loader, criterion):
