@@ -15,13 +15,13 @@ import talib
 import yfinance as yf
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")  # Optional: to confirm the device being used
+print(f"Using device: {device}")
 
 # Set random seed for reproducibility
 np.random.seed(42)
 torch.manual_seed(42)
 
-# Fetch AAPL data
+# Fetch SPY data
 logging.info("Fetching stock_data data...")
 stock_data = yf.download('SPY', start='2004-01-01', end='2024-05-17')
 
@@ -33,17 +33,13 @@ stock_data['Close'] = stock_data['Adj Close']
 logging.info("Removing 'Adj Close' column...")
 stock_data = stock_data.drop(columns=['Adj Close'])
 
-# Display the first few rows of the dataframe
-logging.info("First few rows of the dataframe:")
-logging.info(stock_data.head())
-
 # Checking for missing values
 logging.info("Checking for missing values...")
 logging.info(stock_data.isnull().sum())
 
 # Filling missing values, if any
 logging.info("Filling missing values, if any...")
-stock_data.ffill(inplace=True)  # Forward fill to maintain continuity in stock data
+stock_data.ffill(inplace=True)
 stock_data.dropna(inplace=True)
 
 logging.info("Calculating technical indicators...")
@@ -95,7 +91,7 @@ def create_sequences(data, sequence_length, steps):
     return np.array(xs), np.array(ys)
 
 # Create sequences with modified function
-sequence_length = 1  # Updated sequence length
+sequence_length = 1
 
 # Split the data
 X_train, y_train = create_sequences(price_data_train, sequence_length, steps)
@@ -162,7 +158,7 @@ class EarlyStopping:
     def save_checkpoint(self, val_loss, model):
         if self.verbose:
             print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
-        torch.save(model.state_dict(), self.path)  # Directly save the model's state_dict
+        torch.save(model.state_dict(), self.path)
         self.val_loss_min = val_loss
 
 # Define the TransformerModel class
@@ -188,14 +184,14 @@ class TransformerModel(nn.Module):
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, x):
-        x = x.unsqueeze(-1)  # Add a feature dimension
+        x = x.unsqueeze(-1)
         if self.src_mask is None or self.src_mask.size(0) != x.size(1):
             mask = self._generate_square_subsequent_mask(x.size(1)).to(x.device)
             self.src_mask = mask
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output.squeeze(-1)[:, -steps:]  # Ensure output size matches target size
+        return output.squeeze(-1)[:, -steps:]
 
 # Define the custom scikit-learn estimator
 class TransformerRegressor(BaseEstimator, RegressorMixin):
@@ -211,7 +207,7 @@ class TransformerRegressor(BaseEstimator, RegressorMixin):
         self.model = None
 
     def fit(self, X, y):
-        n_features = steps  # Adjust the output features for multi-step
+        n_features = steps
         self.model = TransformerModel(n_features=n_features, d_model=128, n_heads=self.n_heads, n_hidden=self.n_hidden, n_layers=self.n_layers, dropout=self.dropout)
         self.model.to(device)
 
@@ -294,7 +290,6 @@ param_grid = {
 
 # Perform grid search or random search
 search = GridSearchCV(estimator=TransformerRegressor(), param_grid=param_grid, cv=5, verbose=2, n_jobs=-1)
-# search = RandomizedSearchCV(estimator=TransformerRegressor(), param_distributions=param_grid, cv=5, verbose=2, n_iter=10, n_jobs=-1)
 search.fit(X_train, y_train)
 
 # Get the best model and hyperparameters
@@ -303,7 +298,7 @@ best_params = search.best_params_
 print("Best hyperparameters:", best_params)
 
 # Increase model complexity
-n_features = steps  # Define n_features before using it
+n_features = steps
 complex_model = TransformerModel(n_features=n_features, d_model=128, n_heads=8, n_hidden=1024, n_layers=6, dropout=0.2)
 
 # Move models to appropriate device
@@ -325,7 +320,6 @@ scheduler_complex = OneCycleLR(optimizer_complex, max_lr=0.01, steps_per_epoch=l
 def train_model(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs, patience):
     early_stopping = EarlyStopping(patience=patience, verbose=True)
 
-    # --- Create a GradScaler instance ---
     scaler = GradScaler()
     
     for epoch in range(epochs):
@@ -334,14 +328,12 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
         for batch in train_loader:
             optimizer.zero_grad()
             sequences, labels = batch
-            sequences, labels = sequences.to(device), labels.to(device) 
+            sequences, labels = sequences.to(device), labels.to(device)
             
-            # --- Use autocast context manager ---
-            with autocast(): 
+            with autocast():
                 predictions = model(sequences)
                 loss = criterion(predictions, labels)
 
-            # --- Backpropagation and Optimization with AMP ---
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -356,8 +348,7 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
             print("Early stopping")
             break
     
-    # Load the last checkpoint with the best model
-    model.load_state_dict(torch.load('checkpoint.pt', map_location=device)) 
+    model.load_state_dict(torch.load('checkpoint.pt', map_location=device))
 
 def evaluate(model, val_loader, criterion):
     model.eval()
@@ -365,7 +356,6 @@ def evaluate(model, val_loader, criterion):
     with torch.no_grad():
         for batch in val_loader:
             sequences, labels = batch
-            # --- Move data to GPU for evaluation ---
             sequences, labels = sequences.to(device), labels.to(device)
             predictions = model(sequences)
             loss = criterion(predictions, labels)
@@ -392,15 +382,12 @@ for model in ensemble_models:
     with torch.no_grad():
         for batch in test_loader:
             sequences, labels = batch
-            # --- Move data to GPU for ensemble prediction ---
             sequences, labels = sequences.to(device), labels.to(device)
             predictions = model(sequences)
-            preds.extend(predictions.view(-1).cpu().numpy())  
-    # Move predictions back to CPU for NumPy operations
+            preds.extend(predictions.view(-1).cpu().numpy())
     ensemble_preds.append(preds) 
 
 ensemble_preds = np.mean(ensemble_preds, axis=0)
-# ensemble_preds = np.average(ensemble_preds, axis=0, weights=[0.4, 0.3, 0.3])  # Example weights
 
 # Evaluate on test data, adjusted for multi-step
 test_loss = evaluate(best_model.model, test_loader, criterion)
@@ -414,7 +401,6 @@ with torch.no_grad():
         sequences, labels = batch
         sequences, labels = sequences.to(device), labels.to(device)
         predictions = best_model.model(sequences)
-        # Adjust shape for multi-step predictions
         y_pred.extend(predictions.view(-1).cpu().numpy())
         y_true.extend(labels.view(-1).cpu().numpy())
 
@@ -437,19 +423,16 @@ print(f'Ensemble RMSE: {np.mean(rmse_ensemble)}')
 
 import matplotlib.pyplot as plt
 
-# Assuming y_true and y_pred are already defined and are 1-dimensional
-# For multi-step predictions, you might plot specific steps or aggregate data differently
-
 # Calculate indices for x-axis
 time_steps = np.arange(len(y_true))
 
 # Plot actual vs predicted prices
-plt.figure(figsize=(8, 7))  # Size of the plot
-plt.plot(time_steps, y_true, label='Actual Prices', color='blue', linewidth=2)  # Actual prices in blue
-plt.plot(time_steps, y_pred, label='Predicted Prices', color='red', linewidth=2)  # Predicted prices in red
+plt.figure(figsize=(8, 7))
+plt.plot(time_steps, y_true, label='Actual Prices', color='blue', linewidth=2)
+plt.plot(time_steps, y_pred, label='Predicted Prices', color='red', linewidth=2)
 
 # Add labels and title for clarity
-plt.title('CSCO Stock Price Prediction')
+plt.title('SPY Stock Price Prediction')
 plt.xlabel('Time')
 plt.ylabel('Stock Price')
 plt.legend()
@@ -460,8 +443,6 @@ plt.tight_layout()
 plt.show()
 
 def calculate_input_output_pairs(data_length, sequence_length):
-    # For a given sequence length, the number of input-output pairs is reduced by sequence_length
-    # because the last (sequence_length) observations cannot be used to predict a subsequent value.
     num_pairs = data_length - sequence_length
     return num_pairs
 

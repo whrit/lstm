@@ -156,8 +156,8 @@ class TransformerModel(nn.Module):
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, x):
+        batch_size, sequence_length = x.size(0), x.size(1)
         x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
-        sequence_length = x.size(0)
         if self.src_mask is None or self.src_mask.size(1) != sequence_length:
             mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
             self.src_mask = mask.unsqueeze(0).repeat(self.encoder_layer.self_attn.num_heads, 1, 1)
@@ -166,7 +166,7 @@ class TransformerModel(nn.Module):
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output[-steps:].squeeze()
+        return output[-steps:].squeeze().view(batch_size, -1)
 
 class TransformerEstimator:
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
@@ -190,7 +190,7 @@ class TransformerEstimator:
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=0.001)
         train_dataset = TensorDataset(X, y)
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)  # Adjust the batch size as needed
+        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)  # Adjust the batch size as needed
         self.model.to(device)
         self.model.train()
         for _ in range(5):  # Adjust the number of epochs as needed
