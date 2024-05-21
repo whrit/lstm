@@ -129,7 +129,6 @@ class PositionalEncoding(nn.Module):
         x = x + self.pe[:x.size(0)]
         return self.dropout(x)
 
-# Define the TransformerModel class
 class TransformerModel(nn.Module):
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
         super(TransformerModel, self).__init__()
@@ -158,13 +157,14 @@ class TransformerModel(nn.Module):
     def forward(self, x):
         batch_size, sequence_length = x.size(0), x.size(1)
         x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
+
         if self.src_mask is None or self.src_mask.size(0) != sequence_length:
-            mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
-            self.src_mask = mask.unsqueeze(0).expand(batch_size, -1, -1)  # Add batch dimension and expand
+            self.src_mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
+
         x = self.pos_encoder(x)
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
-        return output[-steps:].squeeze().view(batch_size, -1)
+        return output.transpose(0, 1).squeeze()
 
 class TransformerEstimator:
     def __init__(self, n_features, d_model, n_heads, n_hidden, n_layers, dropout):
@@ -188,10 +188,10 @@ class TransformerEstimator:
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(self.model.parameters(), lr=0.001)
         train_dataset = TensorDataset(X, y)
-        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)  # Adjust the batch size as needed
+        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
         self.model.to(device)
         self.model.train()
-        for _ in range(5):  # Adjust the number of epochs as needed
+        for _ in range(5):
             for batch in train_loader:
                 optimizer.zero_grad()
                 sequences, labels = batch
@@ -211,17 +211,14 @@ class TransformerEstimator:
 
     def score(self, X, y):
         predictions = self.predict(X)
-        y_np = y.cpu().numpy().flatten()  # Convert y to numpy array and flatten it
-        predictions_flat = predictions.flatten()  # Flatten the predictions array
-        
-        # Ensure that y_np and predictions_flat have the same length
+        y_np = y.cpu().numpy().flatten()
+        predictions_flat = predictions.flatten()
         min_length = min(len(y_np), len(predictions_flat))
         y_np = y_np[:min_length]
         predictions_flat = predictions_flat[:min_length]
-        
         mse = mean_squared_error(y_np, predictions_flat)
-        return -mse  # Negative MSE as score for maximization
-    
+        return -mse
+
     def get_params(self, deep=True):
         return {
             'n_features': self.n_features,
@@ -245,7 +242,7 @@ param_grid = {
     'dropout': [0.1, 0.2, 0.3]
 }
 
-n_features = steps  # Define n_features
+n_features = steps
 transformer_estimator = TransformerEstimator(
     n_features=n_features,
     d_model=128,
