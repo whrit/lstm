@@ -148,7 +148,7 @@ class TransformerModel(nn.Module):
     def _generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz), diagonal=1)
         mask = mask.masked_fill(mask == 1, float('-inf'))
-        return mask
+        return mask.unsqueeze(0)
 
     def init_weights(self):
         initrange = 0.1
@@ -158,7 +158,7 @@ class TransformerModel(nn.Module):
     def forward(self, x):
         batch_size, sequence_length = x.size(0), x.size(1)
         x = x.unsqueeze(-1).transpose(0, 1)  # Add a feature dimension and transpose
-        if self.src_mask is None or self.src_mask.size(0) != sequence_length:
+        if self.src_mask is None or self.src_mask.size(1) != sequence_length:
             mask = self._generate_square_subsequent_mask(sequence_length).to(x.device)
             self.src_mask = mask
         else:

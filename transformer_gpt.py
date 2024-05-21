@@ -322,7 +322,7 @@ warnings.filterwarnings("error", category=UserWarning, module="torch.optim.lr_sc
 
 def train_model(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs, patience):
     early_stopping = EarlyStopping(patience=patience, verbose=True)
-
+    
     scaler = GradScaler()
     
     for epoch in range(epochs):
@@ -341,12 +341,12 @@ def train_model(model, train_loader, test_loader, optimizer, criterion, schedule
                     print("Warning occurred:")
                     print(str(w))
                     traceback.print_exc()
-
+            
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
             total_loss += loss.item()
-
+        
         optimizer.step()  # Move optimizer.step() here, before scheduler.step()
         scheduler.step()  # Call scheduler.step() after optimizer.step()
         
